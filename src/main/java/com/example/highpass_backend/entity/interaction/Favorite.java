@@ -6,6 +6,18 @@ import lombok.*;
 
 @Entity
 @Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@EntityListeners(AuditingEntityListener.class)
+@Table(                         // 좋아요 부정 방지
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "unique_user_favorite",
+            columnNames = {"user_id", "targetId", "targetType"}
+        )
+    }
+)
 public class Favorite {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

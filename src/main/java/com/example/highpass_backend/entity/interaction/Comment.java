@@ -8,6 +8,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Comment {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

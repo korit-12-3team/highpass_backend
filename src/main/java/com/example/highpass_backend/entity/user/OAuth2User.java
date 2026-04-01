@@ -8,6 +8,15 @@ import java.time.LocalDate;
 
 @Entity
 @Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@Table(
+        name="oauth2_users",
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"provider", "provider_id"}
+        )
+)
 public class OAuth2User {
 
     @Id

@@ -8,6 +8,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class UserCertificate {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +22,8 @@ public class UserCertificate {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private UserCertificate usercertificate;
+    @JoinColumn(name = "nationalCertificate_id", nullable = false)
+    private NationalCertificate nationalCertificate;
 
     @Enumerated(EnumType.STRING)
     private Status status;

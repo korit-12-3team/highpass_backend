@@ -8,6 +8,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Study {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,12 +42,19 @@ public class Study {
     @Column(nullable = false)
     private Double longitude;
 
+    @Builder.Default
     @Column(nullable = false)
-    private int viewCount;
+    private int viewCount = 0;
 
+    @Builder.Default
     @Column(nullable = false)
-    private int favoriteCount;
+    private int favoriteCount = 0;
 
-    @Column(name = "created_at" ,nullable = false)
+    @CreatedDate
+    @Column(name = "created_at" ,nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
 }

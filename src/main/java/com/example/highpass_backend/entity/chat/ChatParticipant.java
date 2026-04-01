@@ -6,6 +6,10 @@ import lombok.*;
 
 @Entity
 @Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class ChatParticipant {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
