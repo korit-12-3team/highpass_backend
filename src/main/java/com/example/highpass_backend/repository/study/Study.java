@@ -10,4 +10,6 @@ public interface Study  extends JpaRepository<Study, Long> {
     List<Study> findByUser(User user);
 
     List<Study> findByUserId(Long userId);
+
+
 }

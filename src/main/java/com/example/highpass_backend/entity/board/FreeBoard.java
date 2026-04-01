@@ -14,15 +14,21 @@ public class FreeBoard {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false, length = 50)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false, length = 100)
     private String content;
 
+    @Column(nullable = false)
     private int viewCount;
+
+    @Column(nullable = false)
     private int favoriteCount;
 
+    @Column(name = "created_at" ,nullable = false)
     private LocalDateTime createdAt;
 }

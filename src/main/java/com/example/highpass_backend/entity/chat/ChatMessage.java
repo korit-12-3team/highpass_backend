@@ -14,12 +14,16 @@ public class ChatMessage {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chatRoom_id", nullable = false)
     private ChatRoom chatRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
     private User sender;
 
+    @Column(nullable = false, length = 50)
     private String message;
 
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 }

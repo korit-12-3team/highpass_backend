@@ -14,17 +14,17 @@ public class UserCertificate {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private CertificateSchedule certificateSchedule;
+    private UserCertificate usercertificate;
 
     @Enumerated(EnumType.STRING)
     private Status status;
 
     private Boolean isAlarmEnabled;
 
-    private LocalDateTime createdAt;
 
     public enum Status {
         PREPARING,

@@ -14,21 +14,36 @@ public class Study {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = true, length = 50)
     private String title;
 
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @Column(nullable = false, length = 50)
     private String locationName;
-    private String address;
-    private Double latitude;
-    private Double longitude;
+
+    @Column(nullable = false)
     private String placeId;
 
+    @Column(nullable = false, length = 50)
+    private String address;
+
+    @Column(nullable = false)
+    private Double latitude;
+
+    @Column(nullable = false)
+    private Double longitude;
+
+    @Column(nullable = false)
     private int viewCount;
+
+    @Column(nullable = false)
     private int favoriteCount;
 
+    @Column(name = "created_at" ,nullable = false)
     private LocalDateTime createdAt;
 }

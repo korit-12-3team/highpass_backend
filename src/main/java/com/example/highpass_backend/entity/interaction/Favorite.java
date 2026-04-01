@@ -12,11 +12,14 @@ public class Favorite {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private TargetType targetType;
 
+    @Column(nullable = false)
     private Long targetId;
 
     public enum TargetType {

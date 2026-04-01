@@ -14,12 +14,15 @@ public class Calendar {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false)
     private LocalDate date;
 
+    @Column(nullable = false, length = 50)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 50, nullable = true)
     private String content;
 }
