@@ -3,6 +3,7 @@ package com.example.highpass_backend.entity.chat;
 import com.example.highpass_backend.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter @Setter

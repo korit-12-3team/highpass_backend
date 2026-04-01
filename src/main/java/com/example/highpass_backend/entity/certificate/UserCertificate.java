@@ -3,6 +3,7 @@ package com.example.highpass_backend.entity.certificate;
 import com.example.highpass_backend.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
