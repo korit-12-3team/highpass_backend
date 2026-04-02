@@ -8,10 +8,5 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserCertificateRepository extends JpaRepository<UserCertificate, Long> {
-
-    List<UserCertificate> findByUser(User user);
-
-    List<UserCertificate> findByUserId(Long userId);
-
-    Optional<UserCertificate> findByUserIdAndCertificateScheduleId(Long userId, Long scheduleId);
+    List<UserCertificate> findByUserIdAndNationalCertificate_Id(Long userId, Long nationalCertificateId);
 }

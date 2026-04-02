@@ -19,39 +19,36 @@ public class NationalCertificate {
     private Long id;
 
     @Column(nullable = false)
+    private String certificateName;
+
     private int round;
 
-    @Column(name = "written_Apply_Start", nullable = false)
+    @Column(name = "written_Apply_Start")
     private LocalDate writtenApplyStart;
 
-    @Column(name = "written_Apply_End", nullable = false)
+    @Column(name = "written_Apply_End")
     private LocalDate writtenApplyEnd;
 
-    @Column(name = "written_Exam_Date", nullable = false)
+    @Column(name = "written_Exam_Date")
     private LocalDate writtenExamDate;
 
-    @Column(name = "written_Result_Date", nullable = false)
+    @Column(name = "written_Result_Date")
     private LocalDate writtenResultDate;
 
-    @Column(name = "qualification_Submit_Date", nullable = true)
-    private LocalDate qualificationSubmitDate;
+//    @Column(name = "qualification_Submit_Date", nullable = true)
+//    private LocalDate qualificationSubmitDate;
 
-    @Column(name = "practical_Apply_Start", nullable = false)
+    @Column(name = "practical_Apply_Start")
     private LocalDate practicalApplyStart;
 
-    @Column(name = "practical_Apply_End", nullable = false)
+    @Column(name = "practical_Apply_End")
     private LocalDate practicalApplyEnd;
 
-    @Column(name = "practical_Exam_Date", nullable = false)
+    @Column(name = "practical_Exam_Date")
     private LocalDate practicalExamDate;
 
-    @Column(name = "practical_Result_Date", nullable = false)
+    @Column(name = "practical_Result_Date")
     private LocalDate practicalResultDate;
 
-    public void updateSchedule(int round, Date writtenApplyStart, Date writtenApplyEnd, Date writtenExamDate, Date writtenResultDate,
-                                Date qualificationSubmitDate, Date practicalApplyStart, Date practicalApplyEnd, Date practicalExamDate,
-                               Date practicalResultDate) {
-        this.round = round;
-    }
 
 }
