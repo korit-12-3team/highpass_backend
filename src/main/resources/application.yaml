@@ -1,20 +1,26 @@
 spring:
   application:
     name: highpass_backend
+  config:
+    import: optional:file:env.properties
 
   datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://localhost:3310/highpassdb
     username: root
     password: 1234
-    driver-class-name: org.mariadb.jdbc.Driver
 
   jpa:
+    database-platform: org.hibernate.dialect.MariaDBDialect
     hibernate:
       ddl-auto: update   # create / update / none
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+api:
+  public-data:
+    key: ${PUBLIC_DATA_API_KEY}
 
 server:
   port: 8080

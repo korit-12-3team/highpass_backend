@@ -8,11 +8,18 @@ import java.time.LocalDate;
 @Getter
 @Builder
 public class CertificateScheduleResponse {
-
     private Long id;
     private String certificateName;
+
     private int round;
 
+    private LocalDate writtenApplyStart;
+    private LocalDate writtenApplyEnd;
     private LocalDate writtenExamDate;
+    private LocalDate writtenResultDate;
+
+    private LocalDate practicalApplyStart;
+    private LocalDate practicalApplyEnd;
     private LocalDate practicalExamDate;
+    private LocalDate practicalResultDate;
 }
