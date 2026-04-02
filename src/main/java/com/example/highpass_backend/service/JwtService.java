@@ -20,6 +20,7 @@ public class JwtService {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
         this.expiration = expiration;
     }
+    // secret키랑 expiration 수정해야함
 
     public String generateToken(String email, String role) {
         return Jwts.builder()
