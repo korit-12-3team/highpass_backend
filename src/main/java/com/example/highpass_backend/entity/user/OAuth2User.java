@@ -4,10 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.Map;
+import java.util.Objects;
 
 @Entity
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(exclude = "user")
 @AllArgsConstructor
 @Builder
 @Table(
@@ -40,7 +43,7 @@ public class OAuth2User {
         this.created_at = LocalDate.now();
     }
 
-    public static OAuth2User create(User user, String provider, String providerId, String accessToken) {
+    public static OAuth2User create(User user, String provider, String providerId) {
         OAuth2User oAuth2User = new OAuth2User();
         oAuth2User.user = user;
         oAuth2User.provider = provider;

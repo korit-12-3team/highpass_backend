@@ -45,7 +45,7 @@ public class User {
     }
 
     // 일반 회원 가입 용
-    public static User createLocalUser(String email, String encodedPassword  ,String name) {
+    public static User createLocalUser(String email, String encodedPassword, String name) {
         User user = new User();
         user.email = email;
         user.password = encodedPassword;

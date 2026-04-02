@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface NationalCertificateRepository extends JpaRepository<NationalCertificate, Long> {
 
-    List<NationalCertificate> findByCertificate(NationalCertificate nationalCertificate);
+    List<NationalCertificate> findById(NationalCertificate nationalCertificate);
 
-    List<NationalCertificate> findByNationalCertificateId(Long nationalCertificateId);
 }
