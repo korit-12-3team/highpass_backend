@@ -19,5 +19,12 @@ public class SignupRequestDto {
     private String password;
 
     @NotBlank(message = "이름을 입력해 주세요.")
+    private String nickname;
     private String name;
+
+    private String ageRange;
+    private String gender;
+
+    private String siDo;
+    private String gunGu;
 }
