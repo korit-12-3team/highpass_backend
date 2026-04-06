@@ -1,14 +1,14 @@
 package com.example.highpass_backend.repository.interaction;
 
-import com.example.highpass_backend.entity.interaction.Favorite;
+import com.example.highpass_backend.entity.interaction.BoardLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
+public interface FavoriteRepository extends JpaRepository<BoardLike, Long> {
 
-    List<Favorite> findByUserId(Long userId);
+    List<BoardLike> findByUserId(Long userId);
 
-    Optional<Favorite> findByUserIdAndTargetTypeAndTargetId(Long userId, Favorite.TargetType targetType, Long targetId);
+    Optional<BoardLike> findByUserIdAndTargetTypeAndTargetId(Long userId, BoardLike.TargetType targetType, Long targetId);
 }

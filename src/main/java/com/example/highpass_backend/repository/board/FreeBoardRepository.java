@@ -11,4 +11,5 @@ public interface FreeBoardRepository extends JpaRepository<FreeBoard, Long> {
     List<FreeBoard> findByUser(User user);
 
     List<FreeBoard> findByUserId(Long userId);
+
 }

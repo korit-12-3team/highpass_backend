@@ -6,20 +6,20 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Getter @Setter
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-@Table(                         // 좋아요 부정 방지
+@Table(                         // 좋아요 중복 방지
     uniqueConstraints = {
         @UniqueConstraint(
-            name = "unique_user_favorite",
-            columnNames = {"user_id", "targetId", "targetType"}
+            name = "unique_user_like",
+            columnNames = {"user_id", "target_id", "target_type"}
         )
     }
 )
-public class Favorite {
+public class BoardLike {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
