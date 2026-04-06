@@ -45,7 +45,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("https://free-waves-drive.loca.lt/login")  // 🔥 추가
+                        .loginPage("https://afraid-duck-0.loca.lt/login")  // 🔥 추가
                         .userInfoEndpoint(user -> user
                                 .userService(customOAuth2UserService)
                         )
@@ -64,7 +64,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://free-waves-drive.loca.lt"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://afraid-duck-0.loca.lt"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

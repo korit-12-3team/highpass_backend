@@ -1,9 +1,10 @@
 package com.example.highpass_backend.dto.board;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Getter
-public class FreeBoardRequest {
-    private String title;
-    private String content;
-}
+
+public record FreeBoardRequest (
+    String title,
+    String content
+) {}

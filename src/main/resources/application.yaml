@@ -18,13 +18,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
   security:
     oauth2:
       client:
         registration:
           kakao:
             client-id: ${KAKAO_REST_API_KEY}
-#            client-secret: ${KAKAO_CLIENT_SECRET}   # 없으면 생략 가능
+            #            client-secret: ${KAKAO_CLIENT_SECRET}   # 없으면 생략 가능
             authorization-grant-type: authorization_code
             redirect-uri: https://highpass.loca.lt/login/oauth2/code/kakao
             scope:

@@ -34,9 +34,9 @@ public class FreeBoard {
     @Column(nullable = false)
     private int viewCount = 0;
 
-    @Builder.Default    // 생성 시각 자동 주입
+    @Builder.Default
     @Column(nullable = false)
-    private int favoriteCount = 0;
+    private int likeCount = 0;
 
     @CreatedDate
     @Column(name = "created_at" ,nullable = false, updatable = false)
@@ -46,4 +46,13 @@ public class FreeBoard {
         this.title = title;
         this.content = content;
     }
+
+    public void increaseViewCount() {
+        this.viewCount ++ ;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount ++;
+    }
+
 }

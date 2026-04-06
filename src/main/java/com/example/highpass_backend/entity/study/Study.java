@@ -50,7 +50,7 @@ public class Study {
 
     @Builder.Default
     @Column(nullable = false)
-    private int favoriteCount = 0;
+    private int likeCount = 0;
 
     @CreatedDate
     @Column(name = "created_at" ,nullable = false, updatable = false)
