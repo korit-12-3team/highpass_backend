@@ -33,8 +33,14 @@ public class User {
     @Column(nullable = false)
     private String gender;
 
+//    @Column(nullable = false, length = 50)
+//    private String region;
+
     @Column(nullable = false, length = 50)
-    private String region;
+    private String siDo;
+
+    @Column(nullable = false, length = 50)
+    private String gunGu;
 
     @Column(name = "created_at" ,nullable = false)
     private LocalDateTime createdAt;

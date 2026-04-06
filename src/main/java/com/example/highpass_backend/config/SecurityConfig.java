@@ -1,8 +1,8 @@
 package com.example.highpass_backend.config;
 
 
+import com.example.highpass_backend.eception.OAuth2SuccessHandler;
 import com.example.highpass_backend.security.JwtAuthenticationFilter;
-import com.example.highpass_backend.security.OAuth2SuccessHandler;
 import com.example.highpass_backend.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -39,17 +39,17 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/login/oauth2/**", "/oauth2/**")
+                        .requestMatchers("/","/login/","/oauth2/**","/api/auth/**")
                         .permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/**").authenticated()   // 보호할 API만
+                        .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .authorizationEndpoint(endpoint ->
-                                endpoint.baseUri("/oauth2/authorization"))
-                        .userInfoEndpoint(userInfo ->
-                                userInfo.userService(customOAuth2UserService))
+                        .loginPage("https://free-waves-drive.loca.lt/login")  // 🔥 추가
+                        .userInfoEndpoint(user -> user
+                                .userService(customOAuth2UserService)
+                        )
                         .successHandler(oAuth2SuccessHandler)
-                        .failureUrl("/api.auth.oauth2/failuer")
                 )
                 .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -64,7 +64,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://free-waves-drive.loca.lt"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

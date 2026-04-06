@@ -50,4 +50,8 @@ public class OAuth2User {
         oAuth2User.providerId = providerId;
         return oAuth2User;
     }
+
+    public Object getAttribute(String id) {
+        return providerId;
+    }
 }
