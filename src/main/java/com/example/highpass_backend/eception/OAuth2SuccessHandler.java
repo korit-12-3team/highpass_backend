@@ -13,23 +13,25 @@ import java.io.IOException;
 
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+    private static final String FRONTEND_BASE_URL = "https://afraid-duck-0.loca.lt";
+
     @Override
     public void onAuthenticationSuccess(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
         CustomUserDetails userDetails =
                 (CustomUserDetails) authentication.getPrincipal();
 
+
+
         assert userDetails != null;
         if (userDetails.isNew()) {
-            // 추가 회원가입 필요
             response.sendRedirect(
-                    "http://localhost:3000/oauth2/signup?provider=" +
+                    FRONTEND_BASE_URL + "/oauth2/signup?provider=" +
                             userDetails.getProvider() +
                             "&providerId=" + userDetails.getProviderId()
             );
         } else {
-            // 로그인 완료
-            response.sendRedirect("https://free-waves-drive.loca.lt/calendar");
+            response.sendRedirect(FRONTEND_BASE_URL + "/calendar");
         }
     }
 }
