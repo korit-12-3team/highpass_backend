@@ -24,7 +24,10 @@ public class Calendar {
     private User user;
 
     @Column(nullable = false)
-    private LocalDate date;
+    private LocalDate startDate;
+
+    @Column(nullable = true)
+    private LocalDate endDate;
 
     @Column(nullable = false, length = 50)
     private String title;
@@ -32,9 +35,12 @@ public class Calendar {
     @Column(columnDefinition = "TEXT", nullable = true)
     private String content;
 
-    public void updateCalendar(LocalDate date, String title, String content) {
-        this.date = date;
+
+    public void updateCalendar(LocalDate startDate, LocalDate endDate, String title, String content, User user) {
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.title = title;
         this.content = content;
+        this.user = user;
     }
 }
