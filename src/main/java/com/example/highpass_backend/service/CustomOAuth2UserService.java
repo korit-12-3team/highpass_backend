@@ -1,40 +1,75 @@
 package com.example.highpass_backend.service;
 
-import com.example.highpass_backend.entity.user.OAuth2User;
-import com.example.highpass_backend.repository.user.OAuth2UserRepository;
+import com.example.highpass_backend.entity.user.OAuth2Account;
+import com.example.highpass_backend.entity.user.OAuthProvider;
+import com.example.highpass_backend.entity.user.User;
+import com.example.highpass_backend.repository.user.OAuth2AccountRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
-    private final UserRepository userRepository;
-    private final OAuth2UserRepository oAuth2UserRepository;
+
+    private final OAuth2AccountRepository oauth2AccountRepository;
 
     @Override
-    @Transactional
-    public org.springframework.security.oauth2.core.user.OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = (OAuth2User) super.loadUser(userRequest);
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oauth2User = super.loadUser(userRequest);
 
-        String provider = "kakao";
-        String providerId = oAuth2User.getAttribute("id").toString();
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        Map<String, Object> attributes = oauth2User.getAttributes();
 
-        OAuth2UserRepository oauth2UserRepository = null;
-        Optional<OAuth2User> existing =
-                oauth2UserRepository.findByProviderAndProviderId(provider, providerId);
+        OAuth2UserInfo userInfo;
+        OAuthProvider provider;
 
-        // 기존 회원 → 로그인
-        return existing.map(auth2User -> new CustomUserDetails(auth2User.getUser(), false)).orElseGet(() -> new CustomUserDetails(provider, providerId, true));
+        if ("google".equals(registrationId)) {
+            userInfo = new GoogleUserInfo(attributes);
+            provider = OAuthProvider.GOOGLE;
+        } else if ("kakao".equals(registrationId)) {
+            userInfo = new KakaoUserInfo(attributes);
+            provider = OAuthProvider.KAKAO;
+        } else {
+            throw new OAuth2AuthenticationException("지원하지 않는 소셜 로그인입니다.");
+        }
 
-        // 신규 회원 → 추가정보 필요
+        String providerId = userInfo.getProviderId();
+
+        Optional<OAuth2Account> accountOpt =
+                oauth2AccountRepository.findByProviderAndProviderId(provider, providerId);
+
+        if (accountOpt.isPresent()) {
+            User user = accountOpt.get().getUser();
+
+            return OAuth2UserPrincipal.builder()
+                    .userId(user.getId())
+                    .email(user.getEmail())
+                    .nickname(user.getNickname())
+                    .provider(provider)
+                    .providerId(providerId)
+                    .isNew(false)
+                    .attributes(attributes)
+                    .build();
+        }
+
+        return OAuth2UserPrincipal.builder()
+                .userId(null)
+                .email(userInfo.getEmail())
+                .nickname(userInfo.getNickname())
+                .provider(provider)
+                .providerId(providerId)
+                .isNew(true)
+                .attributes(attributes)
+                .build();
     }
 }

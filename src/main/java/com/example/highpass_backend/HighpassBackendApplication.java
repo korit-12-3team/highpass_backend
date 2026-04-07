@@ -23,7 +23,7 @@ public class HighpassBackendApplication {
     @Bean
     public CommandLineRunner initData(UserRepository userRepository, FreeBoardRepository freeBoardRepository, StudyRepository studyRepository) {
         return args -> {
-            User user = new User(null, "1234@test.com", "1234", "명원바보", "명원", "30", "남 ", "부산", "사상구", null);
+            User user = new User(null, "1234@test.com", "1234", "명원바보", "30", "남", "부산시 ", "사상구",  null);
             User savedUser = userRepository.save(user);
 
             FreeBoard board1 = FreeBoard.builder()
