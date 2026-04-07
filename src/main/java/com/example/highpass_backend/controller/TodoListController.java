@@ -27,15 +27,15 @@ public class TodoListController {
     }
 
     // 날짜별 목록 조회
-    @GetMapping("/{userId}")
+    @GetMapping("/{Id}")
     public ResponseEntity<List<TodoListResponse>> getList(
-            @PathVariable Long userId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date) {
-        List<TodoListResponse> responses = todoListService.getTodosByDate(userId, date);
+            @PathVariable Long Id, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date) {
+        List<TodoListResponse> responses = todoListService.getTodosByDate(Id, date);
         return ResponseEntity.ok(responses);
     }
 
     // 완료 상태
-    @PatchMapping("/status/{id}")
+    @PatchMapping("/{id}/status")
     public ResponseEntity<Void> done(@PathVariable("id") Long id) {
         todoListService.toggleStatus(id);
         return ResponseEntity.ok().build();
