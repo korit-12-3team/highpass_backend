@@ -43,8 +43,12 @@ public class FreeBoard {
     private LocalDateTime createdAt;
 
     public void updateBoard(String title, String content) {
-        this.title = title;
-        this.content = content;
+        if (title != null) {
+            this.title = title;
+        }
+        if (content != null) {
+            this.content = content;
+        }
     }
 
     public void increaseViewCount() {
@@ -53,6 +57,10 @@ public class FreeBoard {
 
     public void increaseLikeCount() {
         this.likeCount ++;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) this.likeCount-- ;
     }
 
 }

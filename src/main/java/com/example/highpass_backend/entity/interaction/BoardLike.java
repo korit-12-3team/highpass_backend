@@ -28,11 +28,11 @@ public class BoardLike {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
+    @Column(name = "target_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private TargetType targetType;
 
-    @Column(nullable = false)
+    @Column(name = "target_id", nullable = false)
     private Long targetId;
 
     public enum TargetType {

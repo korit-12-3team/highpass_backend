@@ -16,7 +16,6 @@ import java.util.List;
 public class FreeBoardController {
     private final FreeBoardService freeBoardService;
 
-
     // post
     @PostMapping("/{userId}")
     public ResponseEntity<FreeBoardResponse> addFreeBoard (@PathVariable Long userId, @RequestBody FreeBoardRequest request) {
@@ -47,7 +46,7 @@ public class FreeBoardController {
     }
 
     // update
-    @PatchMapping("/{freeBoardId}/content")
+    @PatchMapping("/{freeBoardId}")
     public ResponseEntity<FreeBoardResponse> updateBoard (@PathVariable Long freeBoardId, @RequestBody FreeBoardRequest request) {
         FreeBoardResponse freeBoardResponse = freeBoardService.updateFreeBoard(freeBoardId, request);
 
