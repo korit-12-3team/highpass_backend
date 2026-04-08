@@ -2,17 +2,12 @@ package com.example.highpass_backend.dto.study;
 
 import lombok.Getter;
 
-@Getter
-public class StudyCreateRequest {
-
-    private String title;
-    private String content;
-
-    private String locationName;
-    private String address;
-
-    private Double latitude;
-    private Double longitude;
-
-    private String placeId;
-}
+public record StudyCreateRequest (
+    String title,
+    String content,
+    String locationName,
+    String address,
+    Double latitude,
+    Double longitude,
+    String placeId
+) {}

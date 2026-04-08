@@ -1,8 +1,10 @@
 package com.example.highpass_backend;
 
 import com.example.highpass_backend.entity.board.FreeBoard;
+import com.example.highpass_backend.entity.study.Study;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.board.FreeBoardRepository;
+import com.example.highpass_backend.repository.study.StudyRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -18,11 +20,10 @@ public class HighpassBackendApplication {
         SpringApplication.run(HighpassBackendApplication.class, args);
     }
 
-    // 메인 클래스 안에 이 부분을 추가해 주세요!
     @Bean
-    public CommandLineRunner initData(UserRepository userRepository, FreeBoardRepository freeBoardRepository) {
+    public CommandLineRunner initData(UserRepository userRepository, FreeBoardRepository freeBoardRepository, StudyRepository studyRepository) {
         return args -> {
-            User user = new User(null, "1234@test.com", "1234", "명원바보", "명원", "30", "남 ", "부산", "사상구", null);
+            User user = new User(null, "1234@test.com", "1234", "명원바보", "30", "남", "부산시 ", "사상구",  null);
             User savedUser = userRepository.save(user);
 
             FreeBoard board1 = FreeBoard.builder()
@@ -43,6 +44,19 @@ public class HighpassBackendApplication {
 
             freeBoardRepository.save(board1);
             freeBoardRepository.save(board2);
+
+            Study study1 = Study.builder()
+                    .user(savedUser)
+                    .title("강남역 백엔드 모각코 인원 모집합니다!")
+                    .content("매주 주말 강남역 스터디카페에 모여서 각자 코딩해요. 스프링부트 공부하시는 분 대환영입니다.")
+                    .locationName("토즈 강남토즈타워점")
+                    .address("서울 강남구 강남대로84길 24-4")
+                    .latitude(37.4965)
+                    .longitude(127.0298)
+                    .placeId("123456789")
+                    .build();
+
+            studyRepository.save(study1);
 
         };
 

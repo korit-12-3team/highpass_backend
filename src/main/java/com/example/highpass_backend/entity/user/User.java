@@ -6,65 +6,68 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter @Setter
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_user_email", columnNames = "email")
+        }
+)
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class User {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 50)
-    private String email;
+    @Column(unique = true)
+    private String email;          // 소셜도 저장, nullable 가능 여부는 정책에 따라
 
-    @Column(nullable = false, length = 50)
-    private String password;
+    private String password;       // 일반 회원만 저장, 소셜은 null
 
     @Column(nullable = false, length = 50)
     private String nickname;
 
-    @Column(nullable = false, length = 50)
-    private String name;
-
-    @Column(nullable = false)
+    @Column(name = "age_range", length = 20)
     private String ageRange;
 
-    @Column(nullable = false)
+    @Column(length = 20)
     private String gender;
 
-//    @Column(nullable = false, length = 50)
-//    private String region;
-
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private String siDo;
 
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private String gunGu;
 
-    @Column(name = "created_at" ,nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+//    @Column(name = "updated_at")
+//    private LocalDateTime updatedAt;
+
     @PrePersist
-    protected void onCreate() {
+    public void prePersist() {
         this.createdAt = LocalDateTime.now();
+//        this.updatedAt = LocalDateTime.now();
     }
 
-    // 일반 회원 가입 용
-    public static User createLocalUser(String email, String encodedPassword, String name) {
-        User user = new User();
-        user.email = email;
-        user.password = encodedPassword;
-        user.name = name;
-        return user;
+//    @PreUpdate
+//    public void preUpdate() {
+//        this.updatedAt = LocalDateTime.now();
+//    }
+
+    public void encodePassword(String encodedPassword) {
+        this.password = encodedPassword;
     }
 
-    // 소셜 로그인 용
-    public static User createOAuth2User(String email, String name) {
-        User user = new User();
-        user.email = email;
-        user.password = null;
-        user.name = name;
-        return  user;
+    public void updateProfile(String nickname, String ageRange, String gender, String siDo, String gunGu) {
+        this.nickname = nickname;
+        this.ageRange = ageRange;
+        this.gender = gender;
+        this.siDo = siDo;
+        this.gunGu = gunGu;
     }
 }

@@ -8,8 +8,8 @@ public class UserRequest {
     private String email;
     private String password;
     private String nickname;
-    private String name;
     private String ageRange;
     private String gender;
-    private String region;
+    private String siDo;
+    private String gunGu;
 }
