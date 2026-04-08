@@ -21,25 +21,25 @@ public class TodoListService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Long createTodo(Long userId, TodoListRequest request) {
+    public TodoListResponse createTodo(Long userId, TodoListRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다. ID: " + userId));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. ID: " + userId));
-
-        TodoList todo = TodoList.builder()
+        TodoList todoList = TodoList.builder()
                 .user(user)
                 .content(request.getContent())
                 .date(request.getDate())
                 .status(request.isStatus())
                 .build();
 
-        return todolistRepository.save(todo).getId();
+        TodoList savedTodoList = todolistRepository.save(todoList);
+
+        return TodoListResponse.from(savedTodoList);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<TodoListResponse> getTodosByDate(Long userId, LocalDate date) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
         return todolistRepository.findAllByUserAndDate(user, date)
                 .stream()
@@ -50,7 +50,7 @@ public class TodoListService {
     @Transactional
     public void toggleStatus(Long id) {
         TodoList todo = todolistRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 일이 존재하지 않습니다. ID: " + id));
+                .orElseThrow(() -> new RuntimeException("해당 일이 존재하지 않습니다. ID: " + id));
 
         todo.setStatus(!todo.isStatus());
     }

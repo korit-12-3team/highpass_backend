@@ -23,7 +23,7 @@ public class CalendarController {
     }
     
     @GetMapping("/{Id}")
-    public ResponseEntity<List<Calendar>> readAllCalendar() {
+    public ResponseEntity<List<CalendarResponse>> getCalendar(@PathVariable Long Id) {
         return ResponseEntity.ok(calendarService.getCalendarList());
     }
 

@@ -2,7 +2,12 @@ package com.example.highpass_backend.controller.todo;
 
 import com.example.highpass_backend.dto.todo.TodoListRequest;
 import com.example.highpass_backend.dto.todo.TodoListResponse;
+<<<<<<< Updated upstream:src/main/java/com/example/highpass_backend/controller/todo/TodoListController.java
 import com.example.highpass_backend.service.todo.TodoListService;
+=======
+import com.example.highpass_backend.service.TodoListService;
+import org.springframework.http.HttpStatus;
+>>>>>>> Stashed changes:src/main/java/com/example/highpass_backend/controller/TodoListController.java
 import org.springframework.web.bind.annotation.RequestBody;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -16,21 +21,19 @@ import java.util.List;
 @RequestMapping("/api/todos")
 @RequiredArgsConstructor
 public class TodoListController {
-
     private final TodoListService todoListService;
 
     // 할 일 등록
     @PostMapping("/{userId}")
-    public ResponseEntity<Long> create(@PathVariable Long userId, @RequestBody TodoListRequest request) {
-        Long todoId = todoListService.createTodo(userId, request);
-        return ResponseEntity.ok(todoId);
+    public ResponseEntity<TodoListResponse> createTodoList(@PathVariable Long userId, @RequestBody TodoListRequest request) {
+        TodoListResponse todoListResponse = todoListService.createTodo(userId, request);
+        return new ResponseEntity<>(todoListResponse,HttpStatus.CREATED);
     }
 
     // 날짜별 목록 조회
-    @GetMapping("/{Id}")
-    public ResponseEntity<List<TodoListResponse>> getList(
-            @PathVariable Long Id, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date) {
-        List<TodoListResponse> responses = todoListService.getTodosByDate(Id, date);
+    @GetMapping("/{id}")
+    public ResponseEntity<List<TodoListResponse>> getList(@PathVariable Long id, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date) {
+        List<TodoListResponse> responses = todoListService.getTodosByDate(id, date);
         return ResponseEntity.ok(responses);
     }
 

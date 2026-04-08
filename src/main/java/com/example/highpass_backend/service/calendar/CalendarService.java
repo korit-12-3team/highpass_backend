@@ -28,19 +28,15 @@ public class CalendarService {
 
         Calendar saved = calendarRepository.save(request);
 
-        return new CalendarResponse(
-                saved.getId(),
-                saved.getTitle(),
-                saved.getContent(),
-                saved.getStartDate(),
-                saved.getEndDate()
-        );
+        return CalendarResponse.from(saved);
     }
 
     //  전체 조회
     @Transactional(readOnly = true)
-    public List<Calendar> getCalendarList() {
-        return calendarRepository.findAll();
+    public List<CalendarResponse> getCalendarList() {
+        return calendarRepository.findAll().stream()
+                .map(CalendarResponse::from)
+                .toList();
     }
 
     // 수정
