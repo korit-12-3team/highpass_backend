@@ -58,6 +58,13 @@ public class TodoListService {
     }
 
     @Transactional
+    public TodoListResponse updateContent(Long todoId, String newContent) {
+        TodoList todoList = todolistRepository.findById(todoId).orElseThrow(() -> new RuntimeException("해당 할 일이 존재하지 않습니다."));
+        todoList.updateContent(newContent);
+        return TodoListResponse.from(todoList);
+    }
+
+    @Transactional
     public void deleteTodo(Long id) {
         todolistRepository.deleteById(id);
     }

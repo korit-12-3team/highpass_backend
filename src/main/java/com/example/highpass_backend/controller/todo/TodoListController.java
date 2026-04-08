@@ -33,11 +33,18 @@ public class TodoListController {
         return ResponseEntity.ok(responses);
     }
 
-    // 완료 상태
+    // 완료 상태 변경
     @PatchMapping("/{todoId}/status")
     public ResponseEntity<TodoListResponse> done(@PathVariable("todoId") Long todoId) {
         TodoListResponse updateTodo = todoListService.toggleStatus(todoId);
         return ResponseEntity.ok(updateTodo);
+    }
+
+    // 내용 수정
+    @PatchMapping("/{todoId}/content")
+    public ResponseEntity<TodoListResponse> updateContent(@PathVariable Long todoId, @RequestBody TodoListRequest request) {
+        TodoListResponse updatedTodo = todoListService.updateContent(todoId, request.getContent());
+        return ResponseEntity.ok(updatedTodo);
     }
 
     // 할 일 삭제

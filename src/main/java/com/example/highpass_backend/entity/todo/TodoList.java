@@ -29,4 +29,11 @@ public class TodoList {
 
     private boolean status = false;
 
+    public void updateContent(String newContent) {
+        if (newContent == null || newContent.trim().isEmpty()) {
+            throw new RuntimeException("내용은 비어있을 수 없습니다");
+        }
+        this.content = newContent;
+    }
+
 }

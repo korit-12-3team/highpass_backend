@@ -22,8 +22,8 @@ public class CalendarController {
         return new ResponseEntity<>(calendarResponse, HttpStatus.CREATED);
     }
     
-    @GetMapping("/{calendarId}")
-    public ResponseEntity<List<CalendarResponse>> getCalendar(@PathVariable Long calendarId) {
+    @GetMapping("/{userId}")
+    public ResponseEntity<List<CalendarResponse>> getCalendar() {
         return ResponseEntity.ok(calendarService.getCalendarList());
     }
 
