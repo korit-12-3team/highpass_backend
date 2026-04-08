@@ -74,10 +74,10 @@ public class Study {
             this.content = content;
         }
         if (locationName != null) {
-        this.locationName = locationName;
+            this.locationName = locationName;
         }
-        if (address != null ) {
-        this.address = address;
+        if (address != null) {
+            this.address = address;
         }
         if (latitude != null) {
             this.latitude = latitude;

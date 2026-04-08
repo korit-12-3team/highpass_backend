@@ -57,7 +57,6 @@ public class HighpassBackendApplication {
                     .build();
 
             studyRepository.save(study1);
-
         };
 
     }

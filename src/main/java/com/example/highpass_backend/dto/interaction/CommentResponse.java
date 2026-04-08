@@ -1,5 +1,6 @@
 package com.example.highpass_backend.dto.interaction;
 
+import com.example.highpass_backend.entity.interaction.Comment;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,4 +15,13 @@ public class CommentResponse {
     private String nickname;
 
     private LocalDateTime createdAt;
+
+    public static CommentResponse from (Comment comment) {
+        return CommentResponse.builder()
+                .id(comment.getId())
+                .content(comment.getContent())
+                .nickname(comment.getUser().getNickname())
+                .createdAt(comment.getCreatedAt())
+                .build();
+    }
 }

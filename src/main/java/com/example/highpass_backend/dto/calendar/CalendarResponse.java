@@ -14,6 +14,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CalendarResponse {
+    private Long userId;
     private Long id;
     private String title;
     private String content;
@@ -26,6 +27,7 @@ public class CalendarResponse {
 
     public static CalendarResponse from(Calendar calendar) {
         return CalendarResponse.builder()
+                .userId(calendar.getUser().getId())
                 .id(calendar.getId())
                 .title(calendar.getTitle())
                 .content(calendar.getContent())

@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TodoListResponse {
+        private Long userId;
         private Long id;
         private String content;
         private LocalDate date;
@@ -20,6 +21,7 @@ public class TodoListResponse {
 
         public static TodoListResponse from(TodoList todo) {
                 return TodoListResponse.builder()
+                        .userId(todo.getUser().getId())
                         .id(todo.getId())
                         .content(todo.getContent())
                         .date(todo.getDate())
