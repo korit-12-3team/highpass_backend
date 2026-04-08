@@ -41,19 +41,21 @@ public class CalendarService {
 
     // 수정
     @Transactional
-    public void updateCalendar(Long id, Calendar updateParam) {
-        Calendar event = calendarRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 일정이 없습니다."));
+    public CalendarResponse updateCalendar(Long calendarId, Calendar updateParam) {
+        Calendar event = calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new RuntimeException("해당 일정이 없습니다."));
         event.setTitle(updateParam.getTitle());
         event.setContent(updateParam.getContent());
         event.setStartDate(updateParam.getStartDate());
         event.setEndDate(updateParam.getEndDate());
+
+        return CalendarResponse.from(event);
     }
 
     // 삭제
     @Transactional
-    public void deleteCalendar(Long id) {
-        calendarRepository.deleteById(id);
+    public void deleteCalendar(Long calendarId) {
+        calendarRepository.deleteById(calendarId);
     }
 }
 

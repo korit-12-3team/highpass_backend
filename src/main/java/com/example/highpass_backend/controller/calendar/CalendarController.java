@@ -22,20 +22,20 @@ public class CalendarController {
         return new ResponseEntity<>(calendarResponse, HttpStatus.CREATED);
     }
     
-    @GetMapping("/{Id}")
-    public ResponseEntity<List<CalendarResponse>> getCalendar(@PathVariable Long Id) {
+    @GetMapping("/{calendarId}")
+    public ResponseEntity<List<CalendarResponse>> getCalendar(@PathVariable Long calendarId) {
         return ResponseEntity.ok(calendarService.getCalendarList());
     }
 
-    @PatchMapping("/{Id}/content")
-    public ResponseEntity<Void> update(@PathVariable Long Id, @RequestBody Calendar event) {
-        calendarService.updateCalendar(Id, event);
-        return ResponseEntity.ok().build();
+    @PatchMapping("/{calendarId}/content")
+    public ResponseEntity<CalendarResponse> updateCalendar(@PathVariable Long calendarId, @RequestBody Calendar request) {
+        CalendarResponse updatedCalendar = calendarService.updateCalendar(calendarId, request);
+        return ResponseEntity.ok(updatedCalendar);
     }
 
-    @DeleteMapping("/{Id}")
-    public ResponseEntity<Void> delete(@PathVariable Long Id) {
-        calendarService.deleteCalendar(Id);
+    @DeleteMapping("/{calendarId}")
+    public ResponseEntity<Void> delete(@PathVariable Long calendarId) {
+        calendarService.deleteCalendar(calendarId);
         return ResponseEntity.ok().build();
     }
 }

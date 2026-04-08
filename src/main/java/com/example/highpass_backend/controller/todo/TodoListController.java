@@ -27,23 +27,23 @@ public class TodoListController {
     }
 
     // 날짜별 목록 조회
-    @GetMapping("/{id}")
-    public ResponseEntity<List<TodoListResponse>> getList(@PathVariable Long id, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date) {
-        List<TodoListResponse> responses = todoListService.getTodosByDate(id, date);
+    @GetMapping("/{todoId}")
+    public ResponseEntity<List<TodoListResponse>> getList(@PathVariable Long todoId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date) {
+        List<TodoListResponse> responses = todoListService.getTodosByDate(todoId, date);
         return ResponseEntity.ok(responses);
     }
 
     // 완료 상태
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<Void> done(@PathVariable("id") Long id) {
-        todoListService.toggleStatus(id);
-        return ResponseEntity.ok().build();
+    @PatchMapping("/{todoId}/status")
+    public ResponseEntity<TodoListResponse> done(@PathVariable("todoId") Long todoId) {
+        TodoListResponse updateTodo = todoListService.toggleStatus(todoId);
+        return ResponseEntity.ok(updateTodo);
     }
 
     // 할 일 삭제
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        todoListService.deleteTodo(id);
+    @DeleteMapping("/{todoId}")
+    public ResponseEntity<Void> delete(@PathVariable Long todoId) {
+        todoListService.deleteTodo(todoId);
         return ResponseEntity.ok().build();
     }
 }

@@ -48,11 +48,13 @@ public class TodoListService {
     }
 
     @Transactional
-    public void toggleStatus(Long id) {
+    public TodoListResponse toggleStatus(Long id) {
         TodoList todo = todolistRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("해당 일이 존재하지 않습니다. ID: " + id));
 
         todo.setStatus(!todo.isStatus());
+
+        return TodoListResponse.from(todo);
     }
 
     @Transactional

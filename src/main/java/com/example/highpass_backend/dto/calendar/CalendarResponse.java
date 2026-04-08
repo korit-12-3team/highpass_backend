@@ -23,7 +23,6 @@ public class CalendarResponse {
     private LocalTime endTime;
 
     private String userNickname;
-    private String userName;
 
     public static CalendarResponse from(Calendar calendar) {
         return CalendarResponse.builder()
