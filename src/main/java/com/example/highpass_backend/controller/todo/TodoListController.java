@@ -2,12 +2,8 @@ package com.example.highpass_backend.controller.todo;
 
 import com.example.highpass_backend.dto.todo.TodoListRequest;
 import com.example.highpass_backend.dto.todo.TodoListResponse;
-<<<<<<< Updated upstream:src/main/java/com/example/highpass_backend/controller/todo/TodoListController.java
 import com.example.highpass_backend.service.todo.TodoListService;
-=======
-import com.example.highpass_backend.service.TodoListService;
 import org.springframework.http.HttpStatus;
->>>>>>> Stashed changes:src/main/java/com/example/highpass_backend/controller/TodoListController.java
 import org.springframework.web.bind.annotation.RequestBody;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;

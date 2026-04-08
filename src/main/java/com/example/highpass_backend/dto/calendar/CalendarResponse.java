@@ -35,7 +35,6 @@ public class CalendarResponse {
                 .startTime(calendar.getStartTime())
                 .endTime(calendar.getEndTime())
                 .userNickname(calendar.getUser().getNickname())
-                .userName(calendar.getUser().getName())
                 .build();
     }
 }
