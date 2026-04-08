@@ -3,6 +3,7 @@ package com.example.highpass_backend.entity.interaction;
 import com.example.highpass_backend.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -33,10 +34,18 @@ public class Comment {
     private Long targetId;
 
     @Column(name = "created_at" ,nullable = false)
+    @CreatedDate //시간 자동 입력용이에욧!
     private LocalDateTime createdAt;
 
     public enum TargetType {
         STUDY,
         FREE
+    }
+
+    public void updateContent(String content) {
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("내용은 비어있을 수 없습니다.");
+        }
+        this.content = content;
     }
 }

@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/login/","/oauth2/**","/api/auth/**", "/api/boards/**", "/api/calendar/**", "/api/study/**", "/api/likes/**", "/api/todos/**")
+                        .requestMatchers("/","/login/","/oauth2/**","/api/auth/**", "/api/boards/**", "/api/calendar/**", "/api/study/**", "/api/likes/**", "/api/comments/**")
                         .permitAll()
                         .requestMatchers("/api/**").authenticated()   // 보호할 API만
                         .anyRequest().permitAll()
