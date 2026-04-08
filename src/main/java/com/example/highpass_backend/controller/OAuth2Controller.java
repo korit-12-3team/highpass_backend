@@ -1,8 +1,8 @@
 package com.example.highpass_backend.controller;
 
-import com.example.highpass_backend.dto.Login.OAuth2SignupRequest;
-import com.example.highpass_backend.dto.Login.OAuth2SignupResult;
-import com.example.highpass_backend.service.OAuth2SignupService;
+import com.example.highpass_backend.dto.login.OAuth2SignupRequest;
+import com.example.highpass_backend.dto.login.OAuth2SignupResult;
+import com.example.highpass_backend.service.login.oauth2.OAuth2SignupService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

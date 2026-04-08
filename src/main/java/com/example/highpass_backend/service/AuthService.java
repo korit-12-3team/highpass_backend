@@ -1,8 +1,8 @@
 package com.example.highpass_backend.service;
 
-import com.example.highpass_backend.dto.Login.LoginResponse;
-import com.example.highpass_backend.dto.Login.UserLoginRequest;
-import com.example.highpass_backend.dto.Login.UserSignupRequest;
+import com.example.highpass_backend.dto.login.LoginResponse;
+import com.example.highpass_backend.dto.login.UserLoginRequest;
+import com.example.highpass_backend.dto.login.UserSignupRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public interface AuthService {

@@ -3,7 +3,7 @@ package com.example.highpass_backend.config;
 
 import com.example.highpass_backend.security.JwtAuthenticationFilter;
 import com.example.highpass_backend.security.OAuth2SuccessHandler;
-import com.example.highpass_backend.service.CustomOAuth2UserService;
+import com.example.highpass_backend.service.login.oauth2.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/login/","/oauth2/**","/api/auth/**", "/api/boards/**", "/api/calendar/**", "/api/study/**", "/api/likes/**")
+                        .requestMatchers("/","/login/","/oauth2/**","/api/auth/**", "/api/boards/**", "/api/calendar/**", "/api/study/**", "/api/likes/**" , "/api/certificates/**")
                         .permitAll()
                         .requestMatchers("/api/**").authenticated()   // 보호할 API만
                         .anyRequest().permitAll()
