@@ -37,11 +37,11 @@ public class TodoListService {
     }
 
     @Transactional(readOnly = true)
-    public List<TodoListResponse> getTodosByDate(Long userId, LocalDate date) {
+    public List<TodoListResponse> getTodosByDate(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
-        return todolistRepository.findAllByUserAndDate(user, date)
+        return todolistRepository.findAllByUser(user)
                 .stream()
                 .map(TodoListResponse::from)
                 .collect(Collectors.toList());
