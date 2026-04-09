@@ -1,7 +1,6 @@
 package com.example.highpass_backend.dto.board;
 
 import com.example.highpass_backend.entity.board.FreeBoard;
-import com.example.highpass_backend.entity.user.User;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,10 +18,15 @@ public class FreeBoardResponse {
 
     private int viewCount;
     private int likeCount;
+    private boolean likedByUser;
 
     private LocalDateTime createdAt;
 
     public static FreeBoardResponse from(FreeBoard board) {
+        return from(board, false);
+    }
+
+    public static FreeBoardResponse from(FreeBoard board, boolean likedByUser) {
         return FreeBoardResponse.builder()
                 .id(board.getId())
                 .userId(board.getUser().getId())
@@ -31,6 +35,7 @@ public class FreeBoardResponse {
                 .nickname(board.getUser().getNickname())
                 .viewCount(board.getViewCount())
                 .likeCount(board.getLikeCount())
+                .likedByUser(likedByUser)
                 .createdAt(board.getCreatedAt())
                 .build();
     }

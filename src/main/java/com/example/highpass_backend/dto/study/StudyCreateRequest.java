@@ -9,5 +9,6 @@ public record StudyCreateRequest (
     String address,
     Double latitude,
     Double longitude,
-    String placeId
+    String placeId,
+    String cert
 ) {}

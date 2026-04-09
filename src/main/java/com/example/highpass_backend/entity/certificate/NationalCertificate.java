@@ -8,6 +8,11 @@ import java.sql.Date;
 import java.time.LocalDate;
 
 @Entity
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_certificate_year_name_round", columnNames = {"exam_year", "certificate_name", "round"})
+        }
+)
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -20,6 +25,9 @@ public class NationalCertificate {
 
     @Column(nullable = false)
     private String certificateName;
+
+    @Column(name = "exam_year", nullable = false)
+    private int year;
 
     private int round;
 

@@ -21,14 +21,22 @@ public class CertificateService {
     private final NationalCertificateRepository nationalCertificateRepository;
 
     @PostConstruct
-    public void syncCertificateSchedules() {
-        log.info("자격증 일정 저장 시작");
-        List<NationalCertificate> entities = certificateDataService.fetchAll();
-        nationalCertificateRepository.saveAll(entities);
-        log.info("자격증 일정 저장 완료 → {}건", entities.size());
+    @Transactional
+    public void initializeSchedules() {
+        if (nationalCertificateRepository.count() > 0) {
+            log.info("기존 자격증 일정 데이터가 있어 Qnet 초기 적재를 건너뜁니다.");
+            return;
+        }
+
+        List<NationalCertificate> fetched = certificateDataService.fetchAll();
+        if (fetched.isEmpty()) {
+            log.warn("Qnet API에서 자격증 일정을 가져오지 못했습니다.");
+            return;
+        }
+
+        nationalCertificateRepository.saveAll(fetched);
+        log.info("Qnet 자격증 일정 최초 적재 완료: {}건", fetched.size());
     }
-
-
 
     @Transactional(readOnly = true)
     public List<CertificateScheduleResponse> getSchedules() {
@@ -36,6 +44,8 @@ public class CertificateService {
                 .map(entity -> CertificateScheduleResponse.builder()
                         .id(entity.getId())
                         .certificateName(entity.getCertificateName())
+                        .year(entity.getYear())
+                        .round(entity.getRound())
                         .writtenApplyStart(entity.getWrittenApplyStart())
                         .writtenApplyEnd(entity.getWrittenApplyEnd())
                         .writtenExamDate(entity.getWrittenExamDate())

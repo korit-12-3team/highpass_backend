@@ -16,41 +16,32 @@ import java.util.List;
 public class FreeBoardController {
     private final FreeBoardService freeBoardService;
 
-    // post
     @PostMapping("/{userId}")
-    public ResponseEntity<FreeBoardResponse> addFreeBoard (@PathVariable Long userId, @RequestBody FreeBoardRequest request) {
+    public ResponseEntity<FreeBoardResponse> addFreeBoard(@PathVariable Long userId, @RequestBody FreeBoardRequest request) {
         FreeBoardResponse freeBoardResponse = freeBoardService.createFreeBoard(userId, request);
         return new ResponseEntity<>(freeBoardResponse, HttpStatus.CREATED);
     }
 
-    // get (다건)
     @GetMapping
-    public ResponseEntity<List<FreeBoardResponse>> getAllBoards() {
-        return ResponseEntity.ok(freeBoardService.getFreeBoardList());
+    public ResponseEntity<List<FreeBoardResponse>> getAllBoards(@RequestParam(required = false) Long userId) {
+        return ResponseEntity.ok(freeBoardService.getFreeBoardList(userId));
     }
 
-    // get (단건 조회)
     @GetMapping("/{freeBoardId}")
-    public ResponseEntity<FreeBoardResponse> getBoard(@PathVariable Long freeBoardId) {
-        FreeBoardResponse response = freeBoardService.getFreeBoard(freeBoardId);
+    public ResponseEntity<FreeBoardResponse> getBoard(@PathVariable Long freeBoardId, @RequestParam(required = false) Long userId) {
+        FreeBoardResponse response = freeBoardService.getFreeBoard(freeBoardId, userId);
         return ResponseEntity.ok(response);
     }
 
-    // delete
     @DeleteMapping("/{freeBoardId}")
     public ResponseEntity<Void> deleteFreeBoard(@PathVariable Long freeBoardId) {
         freeBoardService.deleteFreeBoard(freeBoardId);
-
         return ResponseEntity.ok().build();
-
     }
 
-    // update
     @PatchMapping("/{freeBoardId}")
-    public ResponseEntity<FreeBoardResponse> updateBoard (@PathVariable Long freeBoardId, @RequestBody FreeBoardRequest request) {
+    public ResponseEntity<FreeBoardResponse> updateBoard(@PathVariable Long freeBoardId, @RequestBody FreeBoardRequest request) {
         FreeBoardResponse freeBoardResponse = freeBoardService.updateFreeBoard(freeBoardId, request);
-
         return ResponseEntity.ok(freeBoardResponse);
     }
-
 }

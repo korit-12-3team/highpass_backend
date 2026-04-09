@@ -26,7 +26,7 @@ public class BoardLikeService {
     public void toggleLike(Long userId, BoardLike.TargetType targetType, Long targetId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. "));
 
-        Optional<BoardLike> existingLike = boardLikeRepository.findByUserIdAndTargetTypeAndTargetId(targetId, targetType, targetId);
+        Optional<BoardLike> existingLike = boardLikeRepository.findByUserIdAndTargetTypeAndTargetId(userId, targetType, targetId);
 
         if (existingLike.isPresent()) {
             boardLikeRepository.delete(existingLike.get());

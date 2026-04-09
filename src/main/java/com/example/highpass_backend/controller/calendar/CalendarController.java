@@ -21,10 +21,10 @@ public class CalendarController {
         CalendarResponse calendarResponse = calendarService.createCalendar(userId, request);
         return new ResponseEntity<>(calendarResponse, HttpStatus.CREATED);
     }
-    
+
     @GetMapping("/{userId}")
-    public ResponseEntity<List<CalendarResponse>> getCalendar() {
-        return ResponseEntity.ok(calendarService.getCalendarList());
+    public ResponseEntity<List<CalendarResponse>> getCalendar(@PathVariable Long userId) {
+        return ResponseEntity.ok(calendarService.getCalendarList(userId));
     }
 
     @PatchMapping("/{calendarId}/content")
