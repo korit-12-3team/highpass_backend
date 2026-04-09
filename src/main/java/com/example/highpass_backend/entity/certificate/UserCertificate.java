@@ -26,10 +26,7 @@ public class UserCertificate {
     @JoinColumn(name = "nationalCertificate_id", nullable = false)
     private NationalCertificate nationalCertificate;
 
-    @Enumerated(EnumType.STRING)
-    private Status status;
-
-    private Boolean isAlarmEnabled;
+//    private Boolean isAlarmEnabled;
 
 
     public enum Status {

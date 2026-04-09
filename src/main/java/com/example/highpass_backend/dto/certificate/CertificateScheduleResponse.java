@@ -10,6 +10,7 @@ import java.time.LocalDate;
 public class CertificateScheduleResponse {
     private Long id;
     private String certificateName;
+    private int year;
 
     private int round;
 

@@ -4,7 +4,5 @@ import lombok.Getter;
 
 @Getter
 public class UserCertificateRequest {
-
     private Long certificateScheduleId;
-    private Boolean isAlarmEnabled;
 }

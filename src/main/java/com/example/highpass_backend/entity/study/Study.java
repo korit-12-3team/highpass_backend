@@ -32,6 +32,9 @@ public class Study {
     @Column(nullable = false, length = 50)
     private String locationName;
 
+    @Column(length = 100)
+    private String cert;
+
     @Column(nullable = false)
     private String placeId;
 
@@ -66,7 +69,7 @@ public class Study {
         if (this.likeCount > 0) this.likeCount--;
     }
 
-    public void updateStudy(String title, String content, String locationName, String address, Double latitude, Double longitude, String placeId) {
+    public void updateStudy(String title, String content, String locationName, String address, Double latitude, Double longitude, String placeId, String cert) {
         if (title != null) {
             this.title = title;
         }
@@ -87,6 +90,9 @@ public class Study {
         }
         if (placeId != null) {
             this.placeId = placeId;
+        }
+        if (cert != null) {
+            this.cert = cert;
         }
     }
 }

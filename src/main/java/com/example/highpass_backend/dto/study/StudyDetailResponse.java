@@ -15,25 +15,33 @@ public class StudyDetailResponse {
     private String content;
     private String nickname;
     private String locationName;
+    private String cert;
     private String address;
     private Double latitude;
     private Double longitude;
     private int viewCount;
     private int likeCount;
+    private boolean likedByUser;
     private LocalDateTime createdAt;
 
     public static StudyDetailResponse from(Study study) {
+        return from(study, false);
+    }
+
+    public static StudyDetailResponse from(Study study, boolean likedByUser) {
         return StudyDetailResponse.builder()
                 .id(study.getId())
                 .title(study.getTitle())
                 .content(study.getContent())
                 .nickname(study.getUser().getNickname())
                 .locationName(study.getLocationName())
+                .cert(study.getCert())
                 .address(study.getAddress())
                 .latitude(study.getLatitude())
                 .longitude(study.getLongitude())
                 .viewCount(study.getViewCount())
                 .likeCount(study.getLikeCount())
+                .likedByUser(likedByUser)
                 .createdAt(study.getCreatedAt())
                 .build();
     }

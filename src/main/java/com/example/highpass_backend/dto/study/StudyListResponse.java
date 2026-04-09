@@ -16,11 +16,17 @@ public class StudyListResponse {
     private Long userId;
     private String nickname;
     private String locationName;
+    private String cert;
     private int viewCount;
     private int likeCount;
+    private boolean likedByUser;
     private LocalDateTime createdAt;
 
     public static StudyListResponse from(Study study) {
+        return from(study, false);
+    }
+
+    public static StudyListResponse from(Study study, boolean likedByUser) {
         return StudyListResponse.builder()
                 .id(study.getId())
                 .title(study.getTitle())
@@ -28,8 +34,10 @@ public class StudyListResponse {
                 .userId(study.getUser().getId())
                 .nickname(study.getUser().getNickname())
                 .locationName(study.getLocationName())
+                .cert(study.getCert())
                 .viewCount(study.getViewCount())
                 .likeCount(study.getLikeCount())
+                .likedByUser(likedByUser)
                 .createdAt(study.getCreatedAt())
                 .build();
     }

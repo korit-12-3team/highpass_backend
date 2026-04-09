@@ -1,20 +1,23 @@
 package com.example.highpass_backend.service.certificate;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.XML;
 import com.example.highpass_backend.entity.certificate.NationalCertificate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.XML;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -23,20 +26,15 @@ public class CertificateDataService {
 
     @Value("${api.public-data.key}")
     private String apiServiceKey;
+
     private static final String ENGINEER_URL = "http://openapi.q-net.or.kr/api/service/rest/InquiryTestInformationNTQSVC/getEList?serviceKey=";
     private static final String CRAFTSMAN_URL = "http://openapi.q-net.or.kr/api/service/rest/InquiryTestInformationNTQSVC/getCList?serviceKey=";
 
     public List<NationalCertificate> fetchAll() {
         List<NationalCertificate> result = new ArrayList<>();
-
-        List<NationalCertificate> engineer = fetchEntities(ENGINEER_URL);
-        log.info("기사 데이터 → {}건", engineer.size());
-
-        List<NationalCertificate> craftsman = fetchEntities(CRAFTSMAN_URL);
-        log.info("기능사 데이터 → {}건", craftsman.size());
         result.addAll(fetchEntitiesWithRetry(ENGINEER_URL));
         result.addAll(fetchEntitiesWithRetry(CRAFTSMAN_URL));
-        return result;
+        return dedupe(result);
     }
 
     private List<NationalCertificate> fetchEntities(String baseUrl) {
@@ -45,14 +43,11 @@ public class CertificateDataService {
 
         try {
             String response = restTemplate.getForObject(new URI(url), String.class);
-
-            JSONObject json;
-            if (response != null && response.trim().startsWith("<")) {
-                json = XML.toJSONObject(response); // XML → JSON
-            } else {
-                json = new JSONObject(response);   // 이미 JSON
+            if (response == null || response.isBlank()) {
+                return Collections.emptyList();
             }
 
+            JSONObject json = response.trim().startsWith("<") ? XML.toJSONObject(response) : new JSONObject(response);
             JSONObject responseObj = json.optJSONObject("response");
             if (responseObj == null) return Collections.emptyList();
 
@@ -64,46 +59,46 @@ public class CertificateDataService {
 
             Object item = items.opt("item");
             JSONArray itemArray;
-            if (item instanceof JSONArray) {
-                itemArray = (JSONArray) item;
-            } else if (item instanceof JSONObject) {
+            if (item instanceof JSONArray jsonArray) {
+                itemArray = jsonArray;
+            } else if (item instanceof JSONObject jsonObject) {
                 itemArray = new JSONArray();
-                itemArray.put(item);
+                itemArray.put(jsonObject);
             } else {
                 return Collections.emptyList();
             }
 
             List<NationalCertificate> result = new ArrayList<>();
             for (int i = 0; i < itemArray.length(); i++) {
-                JSONObject el = itemArray.getJSONObject(i);
+                JSONObject element = itemArray.getJSONObject(i);
+                LocalDate writtenApplyStart = parseDate(optString(element, "docregstartdt"));
+                LocalDate writtenApplyEnd = parseDate(optString(element, "docregenddt"));
+                LocalDate writtenExamDate = parseDate(optString(element, "docexamdt"));
+                LocalDate writtenResultDate = parseDate(optString(element, "docpassdt"));
+                LocalDate practicalApplyStart = parseDate(optString(element, "pracregstartdt"));
+                LocalDate practicalApplyEnd = parseDate(optString(element, "pracregenddt"));
+                LocalDate practicalExamDate = parseDate(optString(element, "pracexamstartdt"));
+                LocalDate practicalResultDate = parseDate(optString(element, "pracpassdt"));
+
                 result.add(NationalCertificate.builder()
-                        .certificateName(el.optString("description", null))
-                        .writtenApplyStart(parseDate(String.valueOf(el.opt("docregstartdt"))))
-                        .writtenApplyEnd(parseDate(String.valueOf(el.opt("docregenddt"))))
-                        .writtenExamDate(parseDate(String.valueOf(el.opt("docexamdt"))))
-                        .writtenResultDate(parseDate(String.valueOf(el.opt("docpassdt"))))
-                        .practicalApplyStart(parseDate(String.valueOf(el.opt("pracregstartdt"))))
-                        .practicalApplyEnd(parseDate(String.valueOf(el.opt("pracregenddt"))))
-                        .practicalExamDate(parseDate(String.valueOf(el.opt("pracexamstartdt"))))
-                        .practicalResultDate(parseDate(String.valueOf(el.opt("pracpassdt"))))
+                        .certificateName(optString(element, "description"))
+                        .year(extractYear(element, writtenApplyStart, writtenExamDate, practicalExamDate))
+                        .round(extractRound(element))
+                        .writtenApplyStart(writtenApplyStart)
+                        .writtenApplyEnd(writtenApplyEnd)
+                        .writtenExamDate(writtenExamDate)
+                        .writtenResultDate(writtenResultDate)
+                        .practicalApplyStart(practicalApplyStart)
+                        .practicalApplyEnd(practicalApplyEnd)
+                        .practicalExamDate(practicalExamDate)
+                        .practicalResultDate(practicalResultDate)
                         .build());
             }
+
             return result;
-
-        } catch (Exception e) {
-            log.error("API 통신/매핑 중 에러: ", e);
+        } catch (Exception exception) {
+            log.error("Qnet 자격증 일정 수집 중 오류", exception);
             return Collections.emptyList();
-        }
-    }
-
-
-    private LocalDate parseDate(String dateStr) {
-        if (dateStr == null || dateStr.trim().isEmpty() || dateStr.length() < 8) return null;
-        try {
-            String cleanDate = dateStr.replaceAll("[^0-9]", "");
-            return LocalDate.parse(cleanDate.substring(0, 8), java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
-        } catch (Exception e) {
-            return null;
         }
     }
 
@@ -112,11 +107,72 @@ public class CertificateDataService {
         for (int i = 0; i < maxRetry; i++) {
             List<NationalCertificate> result = fetchEntities(baseUrl);
             if (!result.isEmpty()) return result;
-            log.warn("재시도 {}/{}...", i + 1, maxRetry);
-            try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+            log.warn("Qnet API 재시도 {}/{}", i + 1, maxRetry);
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+                return Collections.emptyList();
+            }
         }
         return Collections.emptyList();
-    } // api 두 개 써서 api 호출 타이밍이 안맞아서 임시로 추가해둘게요 ㅜㅜ....
+    }
 
+    private List<NationalCertificate> dedupe(List<NationalCertificate> source) {
+        Map<String, NationalCertificate> map = new LinkedHashMap<>();
+        for (NationalCertificate certificate : source) {
+            String name = certificate.getCertificateName();
+            if (name == null || name.isBlank()) continue;
+            String key = certificate.getYear() + ":" + name + ":" + certificate.getRound();
+            map.put(key, certificate);
+        }
+        return new ArrayList<>(map.values());
+    }
 
+    private String optString(JSONObject element, String key) {
+        String value = element.optString(key, null);
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private int extractYear(JSONObject element, LocalDate... fallbackDates) {
+        for (String key : List.of("implYy", "implyy", "year", "examYear")) {
+            String value = optString(element, key);
+            if (value != null) {
+                String digits = value.replaceAll("[^0-9]", "");
+                if (digits.length() >= 4) {
+                    return Integer.parseInt(digits.substring(0, 4));
+                }
+            }
+        }
+
+        for (LocalDate date : fallbackDates) {
+            if (date != null) return date.getYear();
+        }
+
+        return LocalDate.now().getYear();
+    }
+
+    private int extractRound(JSONObject element) {
+        for (String key : List.of("implSeq", "implseq", "round", "turn", "series", "seq")) {
+            String value = optString(element, key);
+            if (value != null) {
+                String digits = value.replaceAll("[^0-9]", "");
+                if (!digits.isEmpty()) {
+                    return Integer.parseInt(digits);
+                }
+            }
+        }
+        return 0;
+    }
+
+    private LocalDate parseDate(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) return null;
+        try {
+            String cleanDate = dateStr.replaceAll("[^0-9]", "");
+            if (cleanDate.length() < 8) return null;
+            return LocalDate.parse(cleanDate.substring(0, 8), DateTimeFormatter.ofPattern("yyyyMMdd"));
+        } catch (Exception exception) {
+            return null;
+        }
+    }
 }
