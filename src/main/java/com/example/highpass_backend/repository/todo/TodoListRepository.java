@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface TodoListRepository extends JpaRepository<TodoList, Long> {
 
-    List<TodoList> findAllByUserAndDate(User user, LocalDate date);  //  모든 내용 조회
+    List<TodoList> findAllByUser(User user);  //  모든 내용 조회
 }

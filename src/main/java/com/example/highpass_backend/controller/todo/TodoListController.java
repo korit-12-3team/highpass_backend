@@ -26,10 +26,10 @@ public class TodoListController {
         return new ResponseEntity<>(todoListResponse,HttpStatus.CREATED);
     }
 
-    // 날짜별 목록 조회
-    @GetMapping("/{todoId}")
-    public ResponseEntity<List<TodoListResponse>> getList(@PathVariable Long todoId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date) {
-        List<TodoListResponse> responses = todoListService.getTodosByDate(todoId, date);
+    // 목록 조회
+    @GetMapping("/{userId}")
+    public ResponseEntity<List<TodoListResponse>> getList(@PathVariable Long userId) {
+        List<TodoListResponse> responses = todoListService.getTodosByDate(userId);
         return ResponseEntity.ok(responses);
     }
 
