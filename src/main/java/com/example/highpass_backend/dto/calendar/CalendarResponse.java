@@ -18,6 +18,7 @@ public class CalendarResponse {
     private Long id;
     private String title;
     private String content;
+    private String kind;
     private LocalDate startDate;
     private LocalDate endDate;
     private LocalTime startTime;
@@ -31,6 +32,7 @@ public class CalendarResponse {
                 .id(calendar.getId())
                 .title(calendar.getTitle())
                 .content(calendar.getContent())
+                .kind(calendar.getKind())
                 .startDate(calendar.getStartDate())
                 .endDate(calendar.getEndDate())
                 .startTime(calendar.getStartTime())

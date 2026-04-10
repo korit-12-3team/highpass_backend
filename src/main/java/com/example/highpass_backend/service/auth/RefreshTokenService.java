@@ -35,6 +35,11 @@ public class RefreshTokenService {
                 .orElseThrow(() -> new IllegalArgumentException("리프레시 토큰이 존재하지 않습니다."));
     }
 
+    @Transactional(readOnly = true)
+    public RefreshToken findByUserId(Long userId) {
+        return refreshTokenRepository.findById(userId).orElse(null);
+    }
+
     public void delete(Long userId) {
         refreshTokenRepository.deleteById(userId);
     }
