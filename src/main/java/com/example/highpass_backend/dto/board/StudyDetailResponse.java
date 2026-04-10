@@ -1,6 +1,6 @@
 package com.example.highpass_backend.dto.board;
 
-import com.example.highpass_backend.entity.board.Study;
+import com.example.highpass_backend.entity.board.StudyBoard;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -24,11 +24,11 @@ public class StudyDetailResponse {
     private boolean likedByUser;
     private LocalDateTime createdAt;
 
-    public static StudyDetailResponse from(Study study) {
+    public static StudyDetailResponse from(StudyBoard study) {
         return from(study, false);
     }
 
-    public static StudyDetailResponse from(Study study, boolean likedByUser) {
+    public static StudyDetailResponse from(StudyBoard study, boolean likedByUser) {
         return StudyDetailResponse.builder()
                 .id(study.getId())
                 .title(study.getTitle())

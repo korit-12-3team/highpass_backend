@@ -4,7 +4,7 @@ import com.example.highpass_backend.dto.board.StudyCreateRequest;
 import com.example.highpass_backend.dto.board.StudyDetailResponse;
 import com.example.highpass_backend.dto.board.StudyListResponse;
 import com.example.highpass_backend.entity.board.BoardLike;
-import com.example.highpass_backend.entity.board.Study;
+import com.example.highpass_backend.entity.board.StudyBoard;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.board.BoardLikeRepository;
 import com.example.highpass_backend.repository.board.StudyRepository;
@@ -26,7 +26,7 @@ public class StudyService {
     public StudyDetailResponse createStudy(Long userId, StudyCreateRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
-        Study study = Study.builder()
+        StudyBoard study = StudyBoard.builder()
                 .user(user)
                 .title(request.title())
                 .content(request.content())
@@ -38,7 +38,7 @@ public class StudyService {
                 .placeId(request.placeId())
                 .build();
 
-        Study savedStudy = studyRepository.save(study);
+        StudyBoard savedStudy = studyRepository.save(study);
 
         return StudyDetailResponse.from(savedStudy);
     }
@@ -52,7 +52,7 @@ public class StudyService {
 
     @Transactional
     public StudyDetailResponse getStudy(Long studyId, Long currentUserId) {
-        Study study = studyRepository.findById(studyId)
+        StudyBoard study = studyRepository.findById(studyId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
 
         study.incrementViewCount();
@@ -62,7 +62,7 @@ public class StudyService {
 
     @Transactional
     public void deleteStudy(Long studyId) {
-        Study study = studyRepository.findById(studyId)
+        StudyBoard study = studyRepository.findById(studyId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
 
         studyRepository.delete(study);
@@ -70,7 +70,7 @@ public class StudyService {
 
     @Transactional
     public StudyDetailResponse updateStudy(Long studyId, StudyCreateRequest request) {
-        Study study = studyRepository.findById(studyId)
+        StudyBoard study = studyRepository.findById(studyId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
 
         study.updateStudy(

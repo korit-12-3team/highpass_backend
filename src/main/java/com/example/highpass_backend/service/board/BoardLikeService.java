@@ -2,7 +2,7 @@ package com.example.highpass_backend.service.board;
 
 import com.example.highpass_backend.entity.board.FreeBoard;
 import com.example.highpass_backend.entity.board.BoardLike;
-import com.example.highpass_backend.entity.board.Study;
+import com.example.highpass_backend.entity.board.StudyBoard;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.board.FreeBoardRepository;
 import com.example.highpass_backend.repository.board.BoardLikeRepository;
@@ -45,7 +45,7 @@ public class BoardLikeService {
 
     private void updateBoardLikeCount(BoardLike.TargetType targetType, Long targetId, boolean isIncrease) {
         if (targetType == BoardLike.TargetType.STUDY) {
-            Study study = studyRepository.findById(targetId).orElseThrow();
+            StudyBoard study = studyRepository.findById(targetId).orElseThrow();
             if (isIncrease) study.increaseLikeCount();
             else study.decreaseLikeCount();
 
