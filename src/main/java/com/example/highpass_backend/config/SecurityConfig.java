@@ -3,7 +3,7 @@ package com.example.highpass_backend.config;
 
 import com.example.highpass_backend.security.JwtAuthenticationFilter;
 import com.example.highpass_backend.security.OAuth2SuccessHandler;
-import com.example.highpass_backend.service.login.oauth2.CustomOAuth2UserService;
+import com.example.highpass_backend.service.oauth2.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

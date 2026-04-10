@@ -1,10 +1,10 @@
 package com.example.highpass_backend.service.board;
 
-import com.example.highpass_backend.dto.interaction.CommentRequest;
-import com.example.highpass_backend.dto.interaction.CommentResponse;
-import com.example.highpass_backend.entity.interaction.Comment;
+import com.example.highpass_backend.dto.board.CommentRequest;
+import com.example.highpass_backend.dto.board.CommentResponse;
+import com.example.highpass_backend.entity.board.Comment;
 import com.example.highpass_backend.entity.user.User;
-import com.example.highpass_backend.repository.interaction.CommentRepository;
+import com.example.highpass_backend.repository.board.CommentRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

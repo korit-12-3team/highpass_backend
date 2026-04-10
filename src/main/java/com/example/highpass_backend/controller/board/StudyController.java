@@ -1,8 +1,8 @@
 package com.example.highpass_backend.controller.board;
 
-import com.example.highpass_backend.dto.study.StudyCreateRequest;
-import com.example.highpass_backend.dto.study.StudyDetailResponse;
-import com.example.highpass_backend.dto.study.StudyListResponse;
+import com.example.highpass_backend.dto.board.StudyCreateRequest;
+import com.example.highpass_backend.dto.board.StudyDetailResponse;
+import com.example.highpass_backend.dto.board.StudyListResponse;
 import com.example.highpass_backend.service.board.StudyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

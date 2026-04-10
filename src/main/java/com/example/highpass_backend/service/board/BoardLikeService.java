@@ -1,12 +1,12 @@
 package com.example.highpass_backend.service.board;
 
 import com.example.highpass_backend.entity.board.FreeBoard;
-import com.example.highpass_backend.entity.interaction.BoardLike;
-import com.example.highpass_backend.entity.study.Study;
+import com.example.highpass_backend.entity.board.BoardLike;
+import com.example.highpass_backend.entity.board.Study;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.board.FreeBoardRepository;
-import com.example.highpass_backend.repository.interaction.BoardLikeRepository;
-import com.example.highpass_backend.repository.study.StudyRepository;
+import com.example.highpass_backend.repository.board.BoardLikeRepository;
+import com.example.highpass_backend.repository.board.StudyRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

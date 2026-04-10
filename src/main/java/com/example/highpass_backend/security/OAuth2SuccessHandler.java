@@ -1,9 +1,9 @@
 package com.example.highpass_backend.security;
 
 import com.example.highpass_backend.config.AppProperties;
-import com.example.highpass_backend.service.OAuth2UserPrincipal;
-import com.example.highpass_backend.service.RefreshTokenService;
-import jakarta.servlet.ServletException;
+import com.example.highpass_backend.config.CookieUtils;
+import com.example.highpass_backend.service.oauth2.OAuth2UserPrincipal;
+import com.example.highpass_backend.service.auth.RefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
