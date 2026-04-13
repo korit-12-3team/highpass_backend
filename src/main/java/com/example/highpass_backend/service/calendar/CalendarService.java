@@ -24,6 +24,10 @@ public class CalendarService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
 
         request.setUser(user);
+        if (request.getKind() == null || request.getKind().isBlank()) {
+            request.setKind("general");
+        }
+
         Calendar saved = calendarRepository.save(request);
         return CalendarResponse.from(saved);
     }
@@ -38,11 +42,16 @@ public class CalendarService {
     @Transactional
     public CalendarResponse updateCalendar(Long calendarId, Calendar updateParam) {
         Calendar event = calendarRepository.findById(calendarId)
-                .orElseThrow(() -> new RuntimeException("대상 일정이 없습니다."));
+                .orElseThrow(() -> new RuntimeException("해당 일정이 없습니다."));
+
         event.setTitle(updateParam.getTitle());
         event.setContent(updateParam.getContent());
         event.setStartDate(updateParam.getStartDate());
-        event.setEndDate(updateParam.getEndDate());
+        event.setEndDate(updateParam.getEndDate() != null ? updateParam.getEndDate() : updateParam.getStartDate());
+        event.setStartTime(updateParam.getStartTime());
+        event.setEndTime(updateParam.getEndTime());
+        event.setKind(updateParam.getKind() == null || updateParam.getKind().isBlank() ? "general" : updateParam.getKind());
+
         return CalendarResponse.from(event);
     }
 

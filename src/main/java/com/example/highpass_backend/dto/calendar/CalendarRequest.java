@@ -13,4 +13,5 @@ public class CalendarRequest {
     private LocalTime endTime;
     private String title;
     private String content;
+    private String kind;
 }

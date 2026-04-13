@@ -83,7 +83,6 @@ public class CertificateDataService {
                 result.add(NationalCertificate.builder()
                         .certificateName(optString(element, "description"))
                         .year(extractYear(element, writtenApplyStart, writtenExamDate, practicalExamDate))
-                        .round(extractRound(element))
                         .writtenApplyStart(writtenApplyStart)
                         .writtenApplyEnd(writtenApplyEnd)
                         .writtenExamDate(writtenExamDate)
@@ -123,10 +122,26 @@ public class CertificateDataService {
         for (NationalCertificate certificate : source) {
             String name = certificate.getCertificateName();
             if (name == null || name.isBlank()) continue;
-            String key = certificate.getYear() + ":" + name + ":" + certificate.getRound();
+            String key = buildDedupeKey(
+                    certificate.getCertificateName(),
+                    certificate.getWrittenApplyStart(),
+                    certificate.getPracticalApplyStart()
+            );
             map.put(key, certificate);
         }
         return new ArrayList<>(map.values());
+    }
+
+    private String buildDedupeKey(String certificateName, LocalDate writtenApplyStart, LocalDate practicalApplyStart) {
+        return normalize(certificateName) + "|" + normalizeDate(writtenApplyStart) + "|" + normalizeDate(practicalApplyStart);
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().replaceAll("\\s+", " ");
+    }
+
+    private String normalizeDate(LocalDate value) {
+        return value == null ? "" : value.toString();
     }
 
     private String optString(JSONObject element, String key) {

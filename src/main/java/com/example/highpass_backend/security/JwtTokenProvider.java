@@ -68,6 +68,14 @@ public class JwtTokenProvider {
         return Long.valueOf(claims.getSubject());
     }
 
+    public Long getUserIdAllowExpired(String token) {
+        try {
+            return getUserId(token);
+        } catch (ExpiredJwtException e) {
+            return Long.valueOf(e.getClaims().getSubject());
+        }
+    }
+
     public String getEmail(String token) {
         Claims claims = Jwts.parser().verifyWith(secretKey).build()
                 .parseSignedClaims(token)

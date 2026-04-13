@@ -1,6 +1,6 @@
 package com.example.highpass_backend.controller.board;
 
-import com.example.highpass_backend.entity.interaction.BoardLike;
+import com.example.highpass_backend.entity.board.BoardLike;
 import com.example.highpass_backend.service.board.BoardLikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

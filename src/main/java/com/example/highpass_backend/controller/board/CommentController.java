@@ -1,7 +1,7 @@
 package com.example.highpass_backend.controller.board;
 
-import com.example.highpass_backend.dto.interaction.CommentRequest;
-import com.example.highpass_backend.dto.interaction.CommentResponse;
+import com.example.highpass_backend.dto.board.CommentRequest;
+import com.example.highpass_backend.dto.board.CommentResponse;
 import com.example.highpass_backend.service.board.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

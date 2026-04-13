@@ -1,6 +1,6 @@
 package com.example.highpass_backend.eception;
 
-import com.example.highpass_backend.dto.ErrorResponse;
+import com.example.highpass_backend.dto.etc.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

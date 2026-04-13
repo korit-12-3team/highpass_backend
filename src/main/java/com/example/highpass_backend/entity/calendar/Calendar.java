@@ -7,7 +7,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Date;
 
 @Entity
 @Getter @Setter
@@ -37,6 +36,9 @@ public class Calendar {
     @Column(columnDefinition = "TEXT", nullable = true)
     private String content;
 
+    @Column(nullable = false, length = 30)
+    private String kind;
+
     @Column(nullable = true)
     private LocalTime startTime;
 
@@ -44,13 +46,23 @@ public class Calendar {
     private LocalTime endTime;
 
 
-    public void updateCalendar(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime, String title, String content, User user) {
+    public void updateCalendar(
+            LocalDate startDate,
+            LocalDate endDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            String title,
+            String content,
+            String kind,
+            User user
+    ) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.startTime = startTime;
         this.endTime = endTime;
         this.title = title;
         this.content = content;
+        this.kind = kind;
         this.user = user;
     }
 }
