@@ -8,33 +8,37 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class StudyListResponse {
+public class StudyBoardDetailResponse {
 
     private Long id;
     private String title;
     private String content;
-    private Long userId;
     private String nickname;
     private String locationName;
     private String cert;
+    private String address;
+    private Double latitude;
+    private Double longitude;
     private int viewCount;
     private int likeCount;
     private boolean likedByUser;
     private LocalDateTime createdAt;
 
-    public static StudyListResponse from(StudyBoard study) {
+    public static StudyBoardDetailResponse from(StudyBoard study) {
         return from(study, false);
     }
 
-    public static StudyListResponse from(StudyBoard study, boolean likedByUser) {
-        return StudyListResponse.builder()
+    public static StudyBoardDetailResponse from(StudyBoard study, boolean likedByUser) {
+        return StudyBoardDetailResponse.builder()
                 .id(study.getId())
                 .title(study.getTitle())
                 .content(study.getContent())
-                .userId(study.getUser().getId())
                 .nickname(study.getUser().getNickname())
                 .locationName(study.getLocationName())
                 .cert(study.getCert())
+                .address(study.getAddress())
+                .latitude(study.getLatitude())
+                .longitude(study.getLongitude())
                 .viewCount(study.getViewCount())
                 .likeCount(study.getLikeCount())
                 .likedByUser(likedByUser)

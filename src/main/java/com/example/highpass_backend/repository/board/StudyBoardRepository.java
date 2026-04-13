@@ -6,9 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface StudyRepository extends JpaRepository<StudyBoard, Long> {
+public interface StudyBoardRepository extends JpaRepository<StudyBoard, Long> {
 
-    List<StudyRepository> findByUser(User user);
+    List<StudyBoardRepository> findByUser(User user);
 
-    List<StudyRepository> findByUserId(Long userId);
+    List<StudyBoardRepository> findByUserId(Long userId);
 }

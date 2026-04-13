@@ -2,11 +2,13 @@ package com.example.highpass_backend.service.board;
 
 import com.example.highpass_backend.dto.board.FreeBoardRequest;
 import com.example.highpass_backend.dto.board.FreeBoardResponse;
-import com.example.highpass_backend.entity.board.FreeBoard;
 import com.example.highpass_backend.entity.board.BoardLike;
+import com.example.highpass_backend.entity.board.Comment;
+import com.example.highpass_backend.entity.board.FreeBoard;
 import com.example.highpass_backend.entity.user.User;
-import com.example.highpass_backend.repository.board.FreeBoardRepository;
 import com.example.highpass_backend.repository.board.BoardLikeRepository;
+import com.example.highpass_backend.repository.board.CommentRepository;
+import com.example.highpass_backend.repository.board.FreeBoardRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FreeBoardService {
     private final FreeBoardRepository freeBoardRepository;
+    private final CommentRepository commentRepository;
     private final BoardLikeRepository boardLikeRepository;
     private final UserRepository userRepository;
 
@@ -53,10 +56,13 @@ public class FreeBoardService {
         return FreeBoardResponse.from(freeBoard, isLikedByUser(currentUserId, freeBoard.getId()));
     }
 
+    @Transactional
     public void deleteFreeBoard(Long freeBoardId) {
         FreeBoard freeBoard = freeBoardRepository.findById(freeBoardId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시글입니다."));
 
+        commentRepository.deleteByTargetTypeAndTargetId(Comment.TargetType.FREE, freeBoardId);
+        boardLikeRepository.deleteByTargetTypeAndTargetId(BoardLike.TargetType.FREE, freeBoardId);
         freeBoardRepository.delete(freeBoard);
     }
 

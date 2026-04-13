@@ -1,4 +1,4 @@
-gipackage com.example.highpass_backend.entity.calendar;
+package com.example.highpass_backend.entity.calendar;
 
 import com.example.highpass_backend.entity.user.User;
 import jakarta.persistence.*;

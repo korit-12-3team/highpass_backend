@@ -1,5 +1,6 @@
 package com.example.highpass_backend.controller.user;
 
+import com.example.highpass_backend.dto.user.UpdatePasswordRequest;
 import com.example.highpass_backend.dto.user.UpdateUserRequest;
 import com.example.highpass_backend.dto.user.UserResponse;
 import com.example.highpass_backend.service.user.UserService;
@@ -25,5 +26,14 @@ public class UserController {
             @RequestBody UpdateUserRequest request
     ) {
         return ResponseEntity.ok(userService.updateUser(userId, request));
+    }
+
+    @PatchMapping("/{userId}/password")
+    public ResponseEntity<Void> updatePassword(
+            @PathVariable Long userId,
+            @RequestBody UpdatePasswordRequest request
+    ) {
+        userService.updatePassword(userId, request);
+        return ResponseEntity.noContent().build();
     }
 }

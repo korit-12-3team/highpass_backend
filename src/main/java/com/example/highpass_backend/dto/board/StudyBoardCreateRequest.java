@@ -1,6 +1,6 @@
 package com.example.highpass_backend.dto.board;
 
-public record StudyCreateRequest (
+public record StudyBoardCreateRequest(
     String title,
     String content,
     String locationName,

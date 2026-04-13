@@ -67,7 +67,6 @@ public class UserCertificateService {
                 .certificateScheduleId(certificate.getId())
                 .certificateName(certificate.getCertificateName())
                 .year(certificate.getYear())
-                .round(certificate.getRound())
                 .writtenApplyStart(certificate.getWrittenApplyStart())
                 .writtenApplyEnd(certificate.getWrittenApplyEnd())
                 .writtenExamDate(certificate.getWrittenExamDate())

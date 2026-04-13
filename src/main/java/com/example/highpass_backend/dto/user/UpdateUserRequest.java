@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UpdateUserRequest {
+    private String currentPassword;
     private String nickname;
     private String ageRange;
     private String gender;

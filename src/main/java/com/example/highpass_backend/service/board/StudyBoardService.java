@@ -1,13 +1,15 @@
 package com.example.highpass_backend.service.board;
 
-import com.example.highpass_backend.dto.board.StudyCreateRequest;
-import com.example.highpass_backend.dto.board.StudyDetailResponse;
-import com.example.highpass_backend.dto.board.StudyListResponse;
+import com.example.highpass_backend.dto.board.StudyBoardCreateRequest;
+import com.example.highpass_backend.dto.board.StudyBoardDetailResponse;
+import com.example.highpass_backend.dto.board.StudyBoardListResponse;
 import com.example.highpass_backend.entity.board.BoardLike;
+import com.example.highpass_backend.entity.board.Comment;
 import com.example.highpass_backend.entity.board.StudyBoard;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.board.BoardLikeRepository;
-import com.example.highpass_backend.repository.board.StudyRepository;
+import com.example.highpass_backend.repository.board.CommentRepository;
+import com.example.highpass_backend.repository.board.StudyBoardRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,13 +19,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class StudyService {
-    private final StudyRepository studyRepository;
+public class StudyBoardService {
+    private final StudyBoardRepository studyBoardRepository;
+    private final CommentRepository commentRepository;
     private final BoardLikeRepository boardLikeRepository;
     private final UserRepository userRepository;
 
     @Transactional
-    public StudyDetailResponse createStudy(Long userId, StudyCreateRequest request) {
+    public StudyBoardDetailResponse createStudy(Long userId, StudyBoardCreateRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
         StudyBoard study = StudyBoard.builder()
@@ -38,39 +41,41 @@ public class StudyService {
                 .placeId(request.placeId())
                 .build();
 
-        StudyBoard savedStudy = studyRepository.save(study);
+        StudyBoard savedStudy = studyBoardRepository.save(study);
 
-        return StudyDetailResponse.from(savedStudy);
+        return StudyBoardDetailResponse.from(savedStudy);
     }
 
     @Transactional(readOnly = true)
-    public List<StudyListResponse> getStudyList(Long currentUserId) {
-        return studyRepository.findAll().stream()
-                .map(study -> StudyListResponse.from(study, isLikedByUser(currentUserId, study.getId())))
+    public List<StudyBoardListResponse> getStudyList(Long currentUserId) {
+        return studyBoardRepository.findAll().stream()
+                .map(study -> StudyBoardListResponse.from(study, isLikedByUser(currentUserId, study.getId())))
                 .toList();
     }
 
     @Transactional
-    public StudyDetailResponse getStudy(Long studyId, Long currentUserId) {
-        StudyBoard study = studyRepository.findById(studyId)
+    public StudyBoardDetailResponse getStudy(Long studyId, Long currentUserId) {
+        StudyBoard study = studyBoardRepository.findById(studyId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
 
         study.incrementViewCount();
 
-        return StudyDetailResponse.from(study, isLikedByUser(currentUserId, study.getId()));
+        return StudyBoardDetailResponse.from(study, isLikedByUser(currentUserId, study.getId()));
     }
 
     @Transactional
     public void deleteStudy(Long studyId) {
-        StudyBoard study = studyRepository.findById(studyId)
+        StudyBoard study = studyBoardRepository.findById(studyId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
 
-        studyRepository.delete(study);
+        commentRepository.deleteByTargetTypeAndTargetId(Comment.TargetType.STUDY, studyId);
+        boardLikeRepository.deleteByTargetTypeAndTargetId(BoardLike.TargetType.STUDY, studyId);
+        studyBoardRepository.delete(study);
     }
 
     @Transactional
-    public StudyDetailResponse updateStudy(Long studyId, StudyCreateRequest request) {
-        StudyBoard study = studyRepository.findById(studyId)
+    public StudyBoardDetailResponse updateStudy(Long studyId, StudyBoardCreateRequest request) {
+        StudyBoard study = studyBoardRepository.findById(studyId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
 
         study.updateStudy(
@@ -84,7 +89,7 @@ public class StudyService {
                 request.cert()
         );
 
-        return StudyDetailResponse.from(study);
+        return StudyBoardDetailResponse.from(study);
     }
 
     private boolean isLikedByUser(Long currentUserId, Long studyId) {
