@@ -82,6 +82,10 @@ public class OAuth2SignupServiceImpl implements OAuth2SignupService {
                 .userId(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
+                .ageRange(user.getAgeRange())
+                .gender(user.getGender())
+                .siDo(user.getSiDo())
+                .gunGu(user.getGunGu())
                 .redirectUrl("/calendar")
                 .build();
     }

@@ -6,6 +6,6 @@ import com.example.highpass_backend.dto.auth.UserSignupRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public interface AuthService {
-    void signup(UserSignupRequest request);
+    LoginResponse signup(UserSignupRequest request, HttpServletResponse response);
     LoginResponse login(UserLoginRequest request, HttpServletResponse response);
 }
