@@ -1,6 +1,5 @@
 package com.example.highpass_backend.controller.auth;
 
-import com.example.highpass_backend.dto.etc.ApiResponse;
 import com.example.highpass_backend.dto.auth.LoginResponse;
 import com.example.highpass_backend.dto.auth.UserLoginRequest;
 import com.example.highpass_backend.dto.auth.UserSignupRequest;
@@ -18,9 +17,11 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse> signup(@RequestBody UserSignupRequest request) {
-        authService.signup(request);
-        return ResponseEntity.ok(new ApiResponse("회원가입 완료"));
+    public ResponseEntity<LoginResponse> signup(
+            @RequestBody UserSignupRequest request,
+            HttpServletResponse response
+    ) {
+        return ResponseEntity.ok(authService.signup(request, response));
     }
 
     @PostMapping("/login")
