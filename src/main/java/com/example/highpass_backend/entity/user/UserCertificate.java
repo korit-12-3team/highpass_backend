@@ -26,10 +26,4 @@ public class UserCertificate {
 
 //    private Boolean isAlarmEnabled;
 
-
-    public enum Status {
-        PREPARING,
-        PASSED,
-        FAILED
-    }
 }
