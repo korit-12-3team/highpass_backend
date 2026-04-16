@@ -3,15 +3,15 @@ package com.example.highpass_backend.entity.chat;
 import com.example.highpass_backend.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Getter @Setter
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
+@Table(name = "chat_message")
 @EntityListeners(AuditingEntityListener.class)
 public class ChatMessage {
 
@@ -19,16 +19,24 @@ public class ChatMessage {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chatRoom_id", nullable = false)
+    @JoinColumn(name = "chat_room_id", nullable = false)
     private ChatRoom chatRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User sender;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String message;
 
-    @Column(name = "created_at", nullable = false)
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Builder
+    public ChatMessage(ChatRoom chatRoom, User sender, String message) {
+        this.chatRoom = chatRoom;
+        this.sender = sender;
+        this.message = message;
+    }
 }
