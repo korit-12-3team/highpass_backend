@@ -3,6 +3,7 @@ package com.example.highpass_backend.service.user;
 import com.example.highpass_backend.dto.user.UpdatePasswordRequest;
 import com.example.highpass_backend.dto.user.UpdateUserRequest;
 import com.example.highpass_backend.dto.user.UserResponse;
+import com.example.highpass_backend.dto.user.VerifyPasswordRequest;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +60,14 @@ public class UserServiceImpl implements UserService {
         }
 
         user.encodePassword(passwordEncoder.encode(newPassword));
+    }
+
+    @Override
+    public void verifyPassword(Long userId, VerifyPasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        validateCurrentPassword(user, request.getCurrentPassword());
     }
 
     private void validateCurrentPassword(User user, String currentPassword) {

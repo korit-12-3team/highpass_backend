@@ -3,6 +3,7 @@ package com.example.highpass_backend.controller.user;
 import com.example.highpass_backend.dto.user.UpdatePasswordRequest;
 import com.example.highpass_backend.dto.user.UpdateUserRequest;
 import com.example.highpass_backend.dto.user.UserResponse;
+import com.example.highpass_backend.dto.user.VerifyPasswordRequest;
 import com.example.highpass_backend.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,15 @@ public class UserController {
             @RequestBody UpdatePasswordRequest request
     ) {
         userService.updatePassword(userId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{userId}/password/verify")
+    public ResponseEntity<Void> verifyPassword(
+            @PathVariable Long userId,
+            @RequestBody VerifyPasswordRequest request
+    ) {
+        userService.verifyPassword(userId, request);
         return ResponseEntity.noContent().build();
     }
 }
