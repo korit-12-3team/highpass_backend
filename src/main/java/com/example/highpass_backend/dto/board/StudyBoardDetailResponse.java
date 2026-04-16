@@ -13,6 +13,7 @@ public class StudyBoardDetailResponse {
     private Long id;
     private String title;
     private String content;
+    private Long userId;
     private String nickname;
     private String locationName;
     private String cert;
@@ -33,6 +34,7 @@ public class StudyBoardDetailResponse {
                 .id(study.getId())
                 .title(study.getTitle())
                 .content(study.getContent())
+                .userId(study.getUser().getId())
                 .nickname(study.getUser().getNickname())
                 .locationName(study.getLocationName())
                 .cert(study.getCert())

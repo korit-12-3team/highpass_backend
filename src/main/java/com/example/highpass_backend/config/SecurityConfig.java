@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/","/login/","/oauth2/**","/api/auth/**", "/api/boards/**",
                                 "/api/calendar/**", "/api/study/**", "/api/likes/**", "/api/comments/**", "/api/chat/**"
-                                ,"/api/todos/**","/api/user-certificates/**", "/ws-stomp/**")
+                                ,"/api/todos/**","/api/user-certificates/**", "/api/certificates/**", "/ws-stomp/**")
                         .permitAll()
                         .requestMatchers("/api/**").authenticated()   // 보호할 API만
                         .anyRequest().permitAll()
