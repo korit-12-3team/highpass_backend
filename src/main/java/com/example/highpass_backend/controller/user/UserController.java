@@ -4,9 +4,11 @@ import com.example.highpass_backend.dto.user.UpdatePasswordRequest;
 import com.example.highpass_backend.dto.user.UpdateUserRequest;
 import com.example.highpass_backend.dto.user.UserResponse;
 import com.example.highpass_backend.dto.user.VerifyPasswordRequest;
+import com.example.highpass_backend.security.CustomJwtPrincipal;
 import com.example.highpass_backend.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,6 +17,13 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(
+            @AuthenticationPrincipal CustomJwtPrincipal principal
+    ) {
+        return ResponseEntity.ok(userService.getUserById(principal.getUserId()));
+    }
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
