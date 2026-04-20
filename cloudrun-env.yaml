@@ -1,0 +1,11 @@
+﻿FRONTEND_URL: https://highpassfrontend.vercel.app
+SECURE_COOKIE: 'true'
+SPRING_DATASOURCE_URL: 'jdbc:mysql:///highpassdb?cloudSqlInstance=highpass-project:asia-northeast3:highpass-mysql&socketFactory=com.google.cloud.sql.mysql.SocketFactory&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul'
+SPRING_DATASOURCE_USERNAME: highpass_app
+SPRING_DATASOURCE_PASSWORD: '1234567890'
+JWT_SECRET_KEY: 'mySecretKeyForJwtTokenGenerationMustBe256BitsLong1234567890'
+JWT_EXPIRATION: '86400000'
+PUBLIC_DATA_API_KEY: '9ab7737c0f5b39e3ad83e3862dcc8a186ec027385c86354e4aef0afea6e3706b'
+GOOGLE_CLIENT_ID: placeholder-google-client-id
+GOOGLE_CLIENT_SECRET: placeholder-google-client-secret
+KAKAO_REST_API_KEY: placeholder-kakao-rest-api
