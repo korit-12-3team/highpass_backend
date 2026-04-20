@@ -13,6 +13,7 @@ public class CommentResponse {
     private Long id;
     private String content;
     private String nickname;
+    private Long userId;
 
     private LocalDateTime createdAt;
 
@@ -21,6 +22,7 @@ public class CommentResponse {
                 .id(comment.getId())
                 .content(comment.getContent())
                 .nickname(comment.getUser().getNickname())
+                .userId(comment.getUser().getId())
                 .createdAt(comment.getCreatedAt())
                 .build();
     }
