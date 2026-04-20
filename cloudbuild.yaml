@@ -3,12 +3,28 @@ steps:
     args:
       - build
       - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/highpass-backend:$COMMIT_SHA
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/highpass-backend:${_IMAGE_TAG}
       - .
 
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/highpass-backend:${_IMAGE_TAG}
+      - --region
+      - ${_REGION}
+      - --platform
+      - managed
+      - --quiet
+
 images:
-  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/highpass-backend:$COMMIT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/highpass-backend:${_IMAGE_TAG}
 
 substitutions:
   _REGION: asia-northeast3
   _REPOSITORY: highpass-artifacts
+  _SERVICE: highpass-backend
+  _IMAGE_TAG: latest
