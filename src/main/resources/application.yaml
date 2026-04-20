@@ -6,9 +6,9 @@ spring:
 
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3310/highpassdb
-    username: root
-    password: 1234
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3310/highpassdb}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:1234}
 
   jpa:
     database-platform: org.hibernate.dialect.MariaDBDialect
@@ -51,17 +51,18 @@ api:
     key: ${PUBLIC_DATA_API_KEY}
 
 server:
-  port: 8080
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
 
 jwt:
   secret: ${JWT_SECRET_KEY}
   expiration: ${JWT_EXPIRATION}
-  access-token-expiration: 1800000
+  access-token-expiration: 900000
   refresh-token-expiration: 1209600000
 
 app:
-  frontend-url: http://localhost:3000
-  secure-cookie: false
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  secure-cookie: ${SECURE_COOKIE:false}
 
 springdoc:
   swagger-ui:
