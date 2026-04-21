@@ -14,9 +14,15 @@ public class UserResponse {
     private String gender;
     private String siDo;
     private String gunGu;
+    private String loginType;
+    private String socialProvider;
 
 
     public static UserResponse from(User user) {
+        return from(user, null);
+    }
+
+    public static UserResponse from(User user, String socialProvider) {
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -25,6 +31,8 @@ public class UserResponse {
                 .gender(user.getGender())
                 .siDo(user.getSiDo())
                 .gunGu(user.getGunGu())
+                .loginType(socialProvider == null ? "local" : "social")
+                .socialProvider(socialProvider)
                 .build();
     }
 }

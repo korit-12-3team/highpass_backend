@@ -12,7 +12,6 @@ import com.example.highpass_backend.repository.chat.ChatRoomRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +30,7 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
     private final ChatParticipantRepository chatParticipantRepository;
-    private final SimpMessageSendingOperations messagingTemplate;
+
     @Transactional
     public ChatRoom createOneToOneRoom(Long userId, Long partnerId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
@@ -112,7 +111,6 @@ public class ChatService {
             chatParticipantRepository.save(participant);
 
         }
-        messagingTemplate.convertAndSend("/subscribe/chat/room/" + dto.getRoomId(), dto);
     }
 
     @Transactional

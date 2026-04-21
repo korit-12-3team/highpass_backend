@@ -48,7 +48,7 @@ public class SecurityConfig {
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/login/","/oauth2/**","/api/auth/**", "/api/boards/**",
+                        .requestMatchers("/","/login/","/oauth2/**","/api/auth/**","/api/oauth2/**", "/api/boards/**",
                                 "/api/calendar/**", "/api/study/**", "/api/likes/**", "/api/comments/**", "/api/chat/**"
                                 ,"/api/todos/**","/api/user-certificates/**", "/api/certificates/**", "/ws-stomp/**")
                         .permitAll()

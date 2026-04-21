@@ -4,7 +4,9 @@ import com.example.highpass_backend.dto.user.UpdatePasswordRequest;
 import com.example.highpass_backend.dto.user.UpdateUserRequest;
 import com.example.highpass_backend.dto.user.UserResponse;
 import com.example.highpass_backend.dto.user.VerifyPasswordRequest;
+import com.example.highpass_backend.entity.auth.OAuth2Account;
 import com.example.highpass_backend.entity.user.User;
+import com.example.highpass_backend.repository.auth.OAuth2AccountRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final OAuth2AccountRepository oauth2AccountRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -25,7 +28,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        return UserResponse.from(user);
+        return toUserResponse(user);
     }
 
     @Override
@@ -33,7 +36,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        validateCurrentPassword(user, request.getCurrentPassword());
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            validateCurrentPassword(user, request.getCurrentPassword());
+        }
 
         user.updateProfile(
                 request.getNickname(),
@@ -43,7 +48,7 @@ public class UserServiceImpl implements UserService {
                 request.getGunGu()
         );
 
-        return UserResponse.from(user);
+        return toUserResponse(user);
     }
 
     @Override
@@ -82,5 +87,15 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
+    }
+
+    private UserResponse toUserResponse(User user) {
+        String socialProvider = oauth2AccountRepository.findAllByUserId(user.getId()).stream()
+                .findFirst()
+                .map(OAuth2Account::getProvider)
+                .map(Enum::name)
+                .orElse(null);
+
+        return UserResponse.from(user, socialProvider);
     }
 }
