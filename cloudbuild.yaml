@@ -28,3 +28,6 @@ substitutions:
   _REPOSITORY: highpass-artifacts
   _SERVICE: highpass-backend
   _IMAGE_TAG: latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
