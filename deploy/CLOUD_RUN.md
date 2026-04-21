@@ -141,6 +141,11 @@ In Vercel:
 
 Redeploy the frontend after changing env values.
 
+For Kakao social login, also update the Kakao Developers console:
+
+- site/domain: `https://highpassfrontend.vercel.app`
+- redirect URI: `https://<your-backend-domain>/login/oauth2/code/kakao`
+
 ## 8. Verify
 
 Check:
