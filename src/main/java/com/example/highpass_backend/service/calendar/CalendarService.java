@@ -2,14 +2,18 @@ package com.example.highpass_backend.service.calendar;
 
 import com.example.highpass_backend.dto.calendar.CalendarResponse;
 import com.example.highpass_backend.entity.calendar.Calendar;
+import com.example.highpass_backend.entity.calendar.CalendarAlarmCheck;
 import com.example.highpass_backend.entity.user.User;
+import com.example.highpass_backend.repository.calendar.CalendarAlarmCheckRepository;
 import com.example.highpass_backend.repository.calendar.CalendarRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +21,7 @@ import java.util.List;
 public class CalendarService {
     private final CalendarRepository calendarRepository;
     private final UserRepository userRepository;
+    private final CalendarAlarmCheckRepository alarmCheckRepository;
 
     @Transactional
     public CalendarResponse createCalendar(Long userId, Calendar request) {
@@ -58,5 +63,39 @@ public class CalendarService {
     @Transactional
     public void deleteCalendar(Long calendarId) {
         calendarRepository.deleteById(calendarId);
+    }
+
+    //오늘 알림용 일정 목록 조회 (다시보지않음 누를시 빈리스트로 출력)
+    @Transactional(readOnly = true)
+    public List<CalendarResponse> getTodayAlarms(Long userId) {
+        LocalDate today = LocalDate.now();
+
+        // 1. 오늘 이미 알림을 확인했는지 확인
+        Optional<CalendarAlarmCheck> alarmCheck = alarmCheckRepository.findByUserId(userId);
+        if (alarmCheck.isPresent() && alarmCheck.get().getLastCheckedDate().equals(today)) {
+            return List.of(); // 오늘 이미 확인했다면 아무것도 보내지 않음
+        }
+
+        // 2. 오늘 시작하거나 오늘 종료되는 일정 조회
+        return calendarRepository.findTodayNotifications(userId, today).stream()
+                .map(CalendarResponse::from)
+                .toList();
+    }
+
+    // 알림 확인 완료 처리 (오늘 날짜로 도장 찍기)
+    @Transactional
+    public void markAlarmAsChecked(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+
+        LocalDate today = LocalDate.now();
+
+        CalendarAlarmCheck alarmCheck = alarmCheckRepository.findByUserId(userId)
+                .orElseGet(() -> CalendarAlarmCheck.builder()
+                        .user(user)
+                        .build());
+
+        alarmCheck.updateDate(today);
+        alarmCheckRepository.save(alarmCheck);
     }
 }

@@ -38,4 +38,19 @@ public class CalendarController {
         calendarService.deleteCalendar(calendarId);
         return ResponseEntity.ok().build();
     }
+
+    // 알람
+    // 알람 조회
+    @GetMapping("/alarms/{userId}")
+    public ResponseEntity<List<CalendarResponse>> getTodayAlarms(@PathVariable Long userId) {
+        List<CalendarResponse> alarms = calendarService.getTodayAlarms(userId);
+        return ResponseEntity.ok(alarms);
+    }
+
+    // 알람 확인 완료
+    @PostMapping("/alarms/check/{userId}")
+    public ResponseEntity<Void> checkAlarm(@PathVariable Long userId) {
+        calendarService.markAlarmAsChecked(userId);
+        return ResponseEntity.ok().build();
+    }
 }
