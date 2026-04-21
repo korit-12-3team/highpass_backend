@@ -50,6 +50,8 @@ Typical production values:
 - `SPRING_DATASOURCE_PASSWORD=<production-db-password>`
 - `JWT_SECRET_KEY=<production-secret>`
 
+If the frontend domain changes, update `FRONTEND_URL` on Cloud Run to the exact deployed origin. Social login providers must also allow that frontend origin and the backend callback URI for the active backend domain.
+
 ## Notes
 
 - Spring uses `server.forward-headers-strategy=framework` so redirects and cookies behave correctly behind Cloud Run.
