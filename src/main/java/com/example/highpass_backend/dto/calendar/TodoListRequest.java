@@ -21,5 +21,5 @@ public class TodoListRequest {
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         private LocalDate date;
 
-        private boolean status;
+        private Boolean status;
 }

@@ -1,6 +1,8 @@
 spring:
   application:
     name: highpass_backend
+  jackson:
+    time-zone: Asia/Seoul
   config:
     import: optional:file:env.properties
 
@@ -18,6 +20,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          time_zone: Asia/Seoul
 
   security:
     oauth2:

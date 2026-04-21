@@ -40,14 +40,14 @@ public class TodoListController {
 
     // 내용 수정
     @PatchMapping("/{todoId}/content")
-    public ResponseEntity<TodoListResponse> updateContent(@PathVariable Long todoId, @RequestBody TodoListRequest request) {
+    public ResponseEntity<TodoListResponse> updateContent(@PathVariable("todoId") Long todoId, @RequestBody TodoListRequest request) {
         TodoListResponse updatedTodo = todoListService.updateContent(todoId, request.getContent());
         return ResponseEntity.ok(updatedTodo);
     }
 
     // 할 일 삭제
     @DeleteMapping("/{todoId}")
-    public ResponseEntity<Void> delete(@PathVariable Long todoId) {
+    public ResponseEntity<Void> delete(@PathVariable("todoId") Long todoId) {
         todoListService.deleteTodo(todoId);
         return ResponseEntity.ok().build();
     }

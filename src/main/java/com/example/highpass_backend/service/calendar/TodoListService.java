@@ -27,7 +27,7 @@ public class TodoListService {
                 .user(user)
                 .content(request.getContent())
                 .date(request.getDate())
-                .status(request.isStatus())
+                .status(Boolean.TRUE.equals(request.getStatus()))
                 .build();
 
         TodoList savedTodoList = todolistRepository.save(todoList);
@@ -60,7 +60,7 @@ public class TodoListService {
     public TodoListResponse updateContent(Long todoId, String newContent) {
         TodoList todoList = todolistRepository.findById(todoId).orElseThrow(() -> new RuntimeException("해당 할 일이 존재하지 않습니다."));
         todoList.updateContent(newContent);
-        return TodoListResponse.from(todoList);
+        return TodoListResponse.from(todolistRepository.save(todoList));
     }
 
     @Transactional
