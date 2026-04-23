@@ -59,6 +59,11 @@ public class StudyBoard {
     @Column(name = "created_at" ,nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Status status = Status.VISIBLE;
+
     public void incrementViewCount() {
         this.viewCount++;
     }
@@ -94,5 +99,15 @@ public class StudyBoard {
         if (cert != null) {
             this.cert = cert;
         }
+    }
+
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
+
+    public enum Status {
+        VISIBLE,
+        HIDDEN,
+        DELETED
     }
 }

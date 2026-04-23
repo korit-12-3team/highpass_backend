@@ -4,6 +4,8 @@ import com.example.highpass_backend.entity.user.User;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 public class UserResponse {
@@ -14,8 +16,11 @@ public class UserResponse {
     private String gender;
     private String siDo;
     private String gunGu;
+    private String role;
     private String loginType;
     private String socialProvider;
+    private boolean online;
+    private LocalDateTime lastSeenAt;
 
 
     public static UserResponse from(User user) {
@@ -23,6 +28,10 @@ public class UserResponse {
     }
 
     public static UserResponse from(User user, String socialProvider) {
+        return from(user, socialProvider, false);
+    }
+
+    public static UserResponse from(User user, String socialProvider, boolean online) {
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -31,8 +40,11 @@ public class UserResponse {
                 .gender(user.getGender())
                 .siDo(user.getSiDo())
                 .gunGu(user.getGunGu())
+                .role(user.getRole().name())
                 .loginType(socialProvider == null ? "local" : "social")
                 .socialProvider(socialProvider)
+                .online(online)
+                .lastSeenAt(user.getLastSeenAt())
                 .build();
     }
 }

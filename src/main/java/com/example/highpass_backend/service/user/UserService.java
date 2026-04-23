@@ -10,4 +10,5 @@ public interface UserService {
     UserResponse updateUser(Long userId, UpdateUserRequest request);
     void updatePassword(Long userId, UpdatePasswordRequest request);
     void verifyPassword(Long userId, VerifyPasswordRequest request);
+    void withdrawUser(Long authenticatedUserId, Long userId);
 }

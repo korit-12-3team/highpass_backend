@@ -42,6 +42,11 @@ public class FreeBoard {
     @Column(name = "created_at" ,nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Status status = Status.VISIBLE;
+
     public void updateBoard(String title, String content) {
         if (title != null) {
             this.title = title;
@@ -61,6 +66,16 @@ public class FreeBoard {
 
     public void decreaseLikeCount() {
         if (this.likeCount > 0) this.likeCount-- ;
+    }
+
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
+
+    public enum Status {
+        VISIBLE,
+        HIDDEN,
+        DELETED
     }
 
 }

@@ -45,6 +45,22 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Status status = Status.ACTIVE;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role = Role.USER;
+
+    @Column(name = "last_seen_at")
+    private LocalDateTime lastSeenAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
 //    @Column(name = "updated_at")
 //    private LocalDateTime updatedAt;
 
@@ -69,5 +85,37 @@ public class User {
         this.gender = gender;
         this.siDo = siDo;
         this.gunGu = gunGu;
+    }
+
+    public void updateStatus(Status status) {
+        this.status = status;
+        if (status == Status.DELETED) {
+            this.deletedAt = LocalDateTime.now();
+        } else if (status == Status.ACTIVE) {
+            this.deletedAt = null;
+        }
+    }
+
+    public void updateRole(Role role) {
+        this.role = role;
+    }
+
+    public void markLogin() {
+        markSeen();
+    }
+
+    public void markSeen() {
+        this.lastSeenAt = LocalDateTime.now();
+    }
+
+    public enum Status {
+        ACTIVE,
+        SUSPENDED,
+        DELETED
+    }
+
+    public enum Role {
+        USER,
+        ADMIN
     }
 }

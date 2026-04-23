@@ -42,6 +42,7 @@ public class FreeBoardService {
     @Transactional(readOnly = true)
     public List<FreeBoardResponse> getFreeBoardList(Long currentUserId) {
         return freeBoardRepository.findAll().stream()
+                .filter(board -> board.getStatus() == null || board.getStatus() == FreeBoard.Status.VISIBLE)
                 .map(board -> FreeBoardResponse.from(board, isLikedByUser(currentUserId, board.getId())))
                 .toList();
     }
@@ -50,6 +51,10 @@ public class FreeBoardService {
     public FreeBoardResponse getFreeBoard(Long freeBoardId, Long currentUserId) {
         FreeBoard freeBoard = freeBoardRepository.findById(freeBoardId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시글입니다."));
+
+        if (freeBoard.getStatus() != null && freeBoard.getStatus() != FreeBoard.Status.VISIBLE) {
+            throw new RuntimeException("Hidden or deleted board.");
+        }
 
         freeBoard.increaseViewCount();
 

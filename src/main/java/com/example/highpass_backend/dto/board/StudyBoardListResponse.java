@@ -1,6 +1,7 @@
 package com.example.highpass_backend.dto.board;
 
 import com.example.highpass_backend.entity.board.StudyBoard;
+import com.example.highpass_backend.dto.user.UserDisplayName;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -32,7 +33,7 @@ public class StudyBoardListResponse {
                 .title(study.getTitle())
                 .content(study.getContent())
                 .userId(study.getUser().getId())
-                .nickname(study.getUser().getNickname())
+                .nickname(UserDisplayName.nickname(study.getUser()))
                 .locationName(study.getLocationName())
                 .cert(study.getCert())
                 .viewCount(study.getViewCount())

@@ -21,6 +21,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final OAuth2AccountRepository oauth2AccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserPresenceService userPresenceService;
 
     @Override
     @Transactional(readOnly = true)
@@ -75,6 +76,23 @@ public class UserServiceImpl implements UserService {
         validateCurrentPassword(user, request.getCurrentPassword());
     }
 
+    @Override
+    public void withdrawUser(Long authenticatedUserId, Long userId) {
+        if (!authenticatedUserId.equals(userId)) {
+            throw new IllegalArgumentException("본인 계정만 탈퇴 처리할 수 있습니다.");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        if (user.getStatus() == User.Status.DELETED) {
+            return;
+        }
+
+        user.updateStatus(User.Status.DELETED);
+        user.markSeen();
+    }
+
     private void validateCurrentPassword(User user, String currentPassword) {
         if (user.getPassword() == null || user.getPassword().isBlank()) {
             throw new IllegalArgumentException("소셜 로그인 계정은 비밀번호 확인으로 수정할 수 없습니다.");
@@ -96,6 +114,6 @@ public class UserServiceImpl implements UserService {
                 .map(Enum::name)
                 .orElse(null);
 
-        return UserResponse.from(user, socialProvider);
+        return UserResponse.from(user, socialProvider, userPresenceService.isOnline(user.getId()));
     }
 }

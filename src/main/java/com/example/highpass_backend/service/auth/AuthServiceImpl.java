@@ -8,6 +8,7 @@ import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.user.UserRepository;
 import com.example.highpass_backend.security.JwtProperties;
 import com.example.highpass_backend.security.JwtTokenProvider;
+import com.example.highpass_backend.service.user.UserPresenceService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProperties jwtProperties;
     private final CookieUtils cookieUtils;
     private final RefreshTokenService refreshTokenService;
+    private final UserPresenceService userPresenceService;
 
     @Override
     public LoginResponse signup(UserSignupRequest request, HttpServletResponse response) {
@@ -47,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
         issueAuthCookies(user, response);
+        userPresenceService.markLogin(user.getId());
         return toLoginResponse(user);
     }
 
@@ -63,7 +66,16 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
+        if (user.getStatus() == User.Status.SUSPENDED) {
+            throw new IllegalArgumentException("정지된 계정입니다. 관리자에게 문의해 주세요.");
+        }
+
+        if (user.getStatus() == User.Status.DELETED) {
+            throw new IllegalArgumentException("탈퇴 처리된 계정입니다.");
+        }
+
         issueAuthCookies(user, response);
+        userPresenceService.markLogin(user.getId());
         return toLoginResponse(user);
     }
 
@@ -90,7 +102,8 @@ public class AuthServiceImpl implements AuthService {
                 .gender(user.getGender())
                 .siDo(user.getSiDo())
                 .gunGu(user.getGunGu())
-                .redirectUrl("/calendar")
+                .role(user.getRole().name())
+                .redirectUrl(user.getRole() == User.Role.ADMIN ? "/admin" : "/calendar")
                 .build();
     }
 }

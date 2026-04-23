@@ -1,6 +1,7 @@
 package com.example.highpass_backend.dto.board;
 
 import com.example.highpass_backend.entity.board.Comment;
+import com.example.highpass_backend.dto.user.UserDisplayName;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -21,7 +22,7 @@ public class CommentResponse {
         return CommentResponse.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
-                .nickname(comment.getUser().getNickname())
+                .nickname(UserDisplayName.nickname(comment.getUser()))
                 .userId(comment.getUser().getId())
                 .createdAt(comment.getCreatedAt())
                 .build();

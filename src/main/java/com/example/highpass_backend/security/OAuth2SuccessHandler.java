@@ -4,6 +4,7 @@ import com.example.highpass_backend.config.AppProperties;
 import com.example.highpass_backend.config.CookieUtils;
 import com.example.highpass_backend.service.oauth2.OAuth2UserPrincipal;
 import com.example.highpass_backend.service.auth.RefreshTokenService;
+import com.example.highpass_backend.service.user.UserPresenceService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtProperties jwtProperties;
     private final RefreshTokenService refreshTokenService;
     private final CookieUtils cookieUtils;
+    private final UserPresenceService userPresenceService;
 
     @Override
     public void onAuthenticationSuccess(
@@ -67,6 +69,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         cookieUtils.addAccessTokenCookie(response, accessToken);
         cookieUtils.addRefreshTokenCookie(response, refreshToken);
+        userPresenceService.markLogin(principal.getUserId());
 
         response.sendRedirect(frontendUrl + "/calendar");
     }

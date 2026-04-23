@@ -49,6 +49,7 @@ public class StudyBoardService {
     @Transactional(readOnly = true)
     public List<StudyBoardListResponse> getStudyList(Long currentUserId) {
         return studyBoardRepository.findAll().stream()
+                .filter(study -> study.getStatus() == null || study.getStatus() == StudyBoard.Status.VISIBLE)
                 .map(study -> StudyBoardListResponse.from(study, isLikedByUser(currentUserId, study.getId())))
                 .toList();
     }
@@ -57,6 +58,10 @@ public class StudyBoardService {
     public StudyBoardDetailResponse getStudy(Long studyId, Long currentUserId) {
         StudyBoard study = studyBoardRepository.findById(studyId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
+
+        if (study.getStatus() != null && study.getStatus() != StudyBoard.Status.VISIBLE) {
+            throw new RuntimeException("Hidden or deleted study board.");
+        }
 
         study.incrementViewCount();
 

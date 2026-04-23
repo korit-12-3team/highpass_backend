@@ -54,6 +54,7 @@ public class OAuth2SignupServiceImpl implements OAuth2SignupService {
                 .gender(request.getGender())
                 .siDo(request.getSiDo())
                 .gunGu(request.getGunGu())
+                .role(User.Role.USER)
                 .build();
 
         userRepository.save(user);

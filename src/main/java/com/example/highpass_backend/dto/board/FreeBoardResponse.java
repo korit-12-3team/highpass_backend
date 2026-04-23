@@ -1,6 +1,7 @@
 package com.example.highpass_backend.dto.board;
 
 import com.example.highpass_backend.entity.board.FreeBoard;
+import com.example.highpass_backend.dto.user.UserDisplayName;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -32,7 +33,7 @@ public class FreeBoardResponse {
                 .userId(board.getUser().getId())
                 .title(board.getTitle())
                 .content(board.getContent())
-                .nickname(board.getUser().getNickname())
+                .nickname(UserDisplayName.nickname(board.getUser()))
                 .viewCount(board.getViewCount())
                 .likeCount(board.getLikeCount())
                 .likedByUser(likedByUser)

@@ -55,4 +55,13 @@ public class UserController {
         userService.verifyPassword(userId, request);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> withdrawUser(
+            @PathVariable Long userId,
+            @AuthenticationPrincipal CustomJwtPrincipal principal
+    ) {
+        userService.withdrawUser(principal.getUserId(), userId);
+        return ResponseEntity.noContent().build();
+    }
 }

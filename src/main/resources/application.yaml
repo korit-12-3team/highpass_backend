@@ -67,6 +67,10 @@ jwt:
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
   secure-cookie: ${SECURE_COOKIE:false}
+  admin:
+    email: ${ADMIN_EMAIL:admin@highpass.local}
+    password: ${ADMIN_PASSWORD:Admin1234!}
+    nickname: ${ADMIN_NICKNAME:관리자}
 
 springdoc:
   swagger-ui:

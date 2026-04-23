@@ -17,5 +17,6 @@ public class LoginResponse {
     private String gender;
     private String siDo;
     private String gunGu;
+    private String role;
     private String redirectUrl;
 }
