@@ -75,6 +75,23 @@ public class User {
 //        this.updatedAt = LocalDateTime.now();
 //    }
 
+    // 알림 설정
+    @Builder.Default // 🚨 빌더로 생성할 때도 true가 기본값이 되도록 보장합니다!
+    @Column(nullable = false)
+    private boolean isCommentNotiOn = true;
+
+    @Builder.Default // 🚨 여기도 추가!
+    @Column(nullable = false)
+    private boolean isLikeNotiOn = true;
+
+    public void toggleCommentNoti(boolean on) {
+        this.isCommentNotiOn = on;
+    }
+
+    public void toggleLikeNoti(boolean on) {
+        this.isLikeNotiOn = on;
+    }
+
     public void encodePassword(String encodedPassword) {
         this.password = encodedPassword;
     }

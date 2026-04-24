@@ -8,6 +8,8 @@ import com.example.highpass_backend.repository.board.FreeBoardRepository;
 import com.example.highpass_backend.repository.board.BoardLikeRepository;
 import com.example.highpass_backend.repository.board.StudyBoardRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
+import com.example.highpass_backend.service.notification.NotificationService;
+import com.example.highpass_backend.entity.notification.NotificationType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ public class BoardLikeService {
     private final UserRepository userRepository;
     private final StudyBoardRepository studyBoardRepository;
     private final FreeBoardRepository freeBoardRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public void toggleLike(Long userId, BoardLike.TargetType targetType, Long targetId) {
@@ -40,6 +43,32 @@ public class BoardLikeService {
 
             boardLikeRepository.save(boardLike);
             updateBoardLikeCount(targetType, targetId, true);
+            
+            // 알림 발송 추가
+            sendLikeNotification(user, targetType, targetId);
+        }
+    }
+
+    private void sendLikeNotification(User sender, BoardLike.TargetType targetType, Long targetId) {
+        User recipient = null;
+        String boardTitle = "";
+
+        if (targetType == BoardLike.TargetType.STUDY) {
+            StudyBoard study = studyBoardRepository.findById(targetId).orElseThrow();
+            recipient = study.getUser();
+            boardTitle = study.getTitle();
+        } else if (targetType == BoardLike.TargetType.FREE) {
+            FreeBoard freeBoard = freeBoardRepository.findById(targetId).orElseThrow();
+            recipient = freeBoard.getUser();
+            boardTitle = freeBoard.getTitle();
+        }
+
+        // 자기 자신에게는 알림을 보내지 않음 및 알림 off일때 알림을 보내지 않음
+        if (recipient != null
+                && !recipient.getId().equals(sender.getId())
+                && recipient.isLikeNotiOn()) {
+            String message = String.format("%s님이 내 게시글 [%s]에 좋아요를 남겼습니다.", sender.getNickname(), boardTitle);
+            notificationService.send(recipient, NotificationType.LIKE, message, targetId, targetType.name(), null, sender.getNickname());
         }
     }
 
