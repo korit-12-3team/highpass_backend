@@ -69,7 +69,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         cookieUtils.addAccessTokenCookie(response, accessToken);
         cookieUtils.addRefreshTokenCookie(response, refreshToken);
-        userPresenceService.markLogin(principal.getUserId());
+        userPresenceService.markSeen(principal.getUserId());
 
         response.sendRedirect(frontendUrl + "/calendar");
     }

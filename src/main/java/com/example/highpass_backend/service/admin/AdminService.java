@@ -6,9 +6,11 @@ import com.example.highpass_backend.dto.admin.AdminUserResponse;
 import com.example.highpass_backend.entity.board.Comment;
 import com.example.highpass_backend.entity.board.FreeBoard;
 import com.example.highpass_backend.entity.board.StudyBoard;
+import com.example.highpass_backend.entity.report.Report;
 import com.example.highpass_backend.entity.auth.OAuth2Account;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.dto.user.UserDisplayName;
+import com.example.highpass_backend.repository.report.ReportRepository;
 import com.example.highpass_backend.repository.auth.OAuth2AccountRepository;
 import com.example.highpass_backend.repository.board.CommentRepository;
 import com.example.highpass_backend.repository.board.FreeBoardRepository;
@@ -36,13 +38,21 @@ public class AdminService {
     private final CommentRepository commentRepository;
     private final OAuth2AccountRepository oauth2AccountRepository;
     private final UserPresenceService userPresenceService;
+    private final ReportRepository reportRepository;
 
     @Transactional(readOnly = true)
     public List<AdminUserResponse> getUsers(Long adminUserId) {
         requireAdmin(adminUserId);
         return userRepository.findAll().stream()
                 .filter(user -> user.getRole() != User.Role.ADMIN)
-                .map(user -> AdminUserResponse.from(user, findSocialProvider(user.getId()), userPresenceService.isOnline(user.getId()), countPosts(user.getId()), countUserComments(user.getId())))
+                .map(user -> AdminUserResponse.from(
+                        user,
+                        findSocialProvider(user.getId()),
+                        userPresenceService.isOnline(user.getId()),
+                        countPosts(user.getId()),
+                        countUserComments(user.getId()),
+                        countReportsForUser(user.getId())
+                ))
                 .toList();
     }
 
@@ -54,7 +64,14 @@ public class AdminService {
 
         user.updateStatus(parseUserStatus(status));
 
-        return AdminUserResponse.from(user, findSocialProvider(user.getId()), userPresenceService.isOnline(user.getId()), countPosts(user.getId()), countUserComments(user.getId()));
+        return AdminUserResponse.from(
+                user,
+                findSocialProvider(user.getId()),
+                userPresenceService.isOnline(user.getId()),
+                countPosts(user.getId()),
+                countUserComments(user.getId()),
+                countReportsForUser(user.getId())
+        );
     }
 
     @Transactional(readOnly = true)
@@ -93,13 +110,19 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<AdminReportResponse> getReports(Long adminUserId) {
         requireAdmin(adminUserId);
-        return List.of();
+        return reportRepository.findAll().stream()
+                .sorted(Comparator.comparing(Report::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .map(this::toAdminReportResponse)
+                .toList();
     }
 
     @Transactional
     public AdminReportResponse updateReportStatus(Long adminUserId, String reportId, String status) {
         requireAdmin(adminUserId);
-        return new AdminReportResponse(reportId, "", "", "", "Report domain is not implemented yet.", "", "", normalizeStatus(status));
+        Report report = reportRepository.findById(Long.parseLong(reportId))
+                .orElseThrow(() -> new IllegalArgumentException("Report not found."));
+        report.updateStatus(parseReportStatus(status));
+        return toAdminReportResponse(report);
     }
 
     private void requireAdmin(Long userId) {
@@ -138,7 +161,7 @@ public class AdminService {
                 board.getCreatedAt(),
                 board.getViewCount(),
                 commentRepository.findByTargetIdAndTargetType(board.getId(), Comment.TargetType.FREE).size(),
-                0
+                reportRepository.countByTargetTypeAndTargetId(Report.TargetType.POST, "free-" + board.getId())
         );
     }
 
@@ -155,7 +178,7 @@ public class AdminService {
                 study.getCreatedAt(),
                 study.getViewCount(),
                 commentRepository.findByTargetIdAndTargetType(study.getId(), Comment.TargetType.STUDY).size(),
-                0
+                reportRepository.countByTargetTypeAndTargetId(Report.TargetType.POST, "study-" + study.getId())
         );
     }
 
@@ -171,6 +194,10 @@ public class AdminService {
         return (int) commentRepository.findAll().stream()
                 .filter(comment -> comment.getUser().getId().equals(userId))
                 .count();
+    }
+
+    private int countReportsForUser(Long userId) {
+        return reportRepository.countByTargetTypeAndTargetId(Report.TargetType.USER, String.valueOf(userId));
     }
 
     private String findSocialProvider(Long userId) {
@@ -206,6 +233,28 @@ public class AdminService {
             case "deleted" -> StudyBoard.Status.DELETED;
             default -> throw new IllegalArgumentException("Unsupported post status: " + status);
         };
+    }
+
+    private Report.Status parseReportStatus(String status) {
+        return switch (normalizeStatus(status)) {
+            case "pending" -> Report.Status.PENDING;
+            case "resolved" -> Report.Status.RESOLVED;
+            case "dismissed" -> Report.Status.DISMISSED;
+            default -> throw new IllegalArgumentException("Unsupported report status: " + status);
+        };
+    }
+
+    private AdminReportResponse toAdminReportResponse(Report report) {
+        return new AdminReportResponse(
+                String.valueOf(report.getId()),
+                report.getTargetType().name().toLowerCase(),
+                report.getTargetId(),
+                report.getTargetLabel(),
+                report.getReason(),
+                UserDisplayName.nickname(report.getReporter()),
+                report.getCreatedAt() == null ? "" : report.getCreatedAt().toString(),
+                report.getStatus().name().toLowerCase()
+        );
     }
 
     private String normalizeStatus(String status) {

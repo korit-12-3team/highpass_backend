@@ -49,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
         issueAuthCookies(user, response);
-        userPresenceService.markLogin(user.getId());
+        userPresenceService.markSeen(user.getId());
         return toLoginResponse(user);
     }
 
@@ -75,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         issueAuthCookies(user, response);
-        userPresenceService.markLogin(user.getId());
+        userPresenceService.markSeen(user.getId());
         return toLoginResponse(user);
     }
 

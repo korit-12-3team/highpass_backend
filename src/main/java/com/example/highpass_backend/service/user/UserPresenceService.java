@@ -54,11 +54,6 @@ public class UserPresenceService {
     }
 
     @Transactional
-    public void markLogin(Long userId) {
-        userRepository.findById(userId).ifPresent(User::markLogin);
-    }
-
-    @Transactional
     public void markSeen(Long userId) {
         userRepository.findById(userId).ifPresent(User::markSeen);
     }

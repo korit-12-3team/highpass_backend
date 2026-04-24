@@ -117,10 +117,6 @@ public class User {
         this.role = role;
     }
 
-    public void markLogin() {
-        markSeen();
-    }
-
     public void markSeen() {
         this.lastSeenAt = LocalDateTime.now();
     }

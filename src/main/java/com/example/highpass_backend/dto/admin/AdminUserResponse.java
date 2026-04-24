@@ -22,7 +22,7 @@ public record AdminUserResponse(
         int comments,
         int reports
 ) {
-    public static AdminUserResponse from(User user, String socialProvider, boolean online, int posts, int comments) {
+    public static AdminUserResponse from(User user, String socialProvider, boolean online, int posts, int comments, int reports) {
         User.Status status = user.getStatus() == null ? User.Status.ACTIVE : user.getStatus();
         String region = String.join(" ",
                 user.getSiDo() == null ? "" : user.getSiDo(),
@@ -46,7 +46,7 @@ public record AdminUserResponse(
                 user.getDeletedAt(),
                 posts,
                 comments,
-                0
+                reports
         );
     }
 }
