@@ -58,7 +58,8 @@ public class Report {
         USER,
         POST,
         COMMENT,
-        CHAT
+        CHAT,
+        INQUIRY
     }
 
     public enum Status {

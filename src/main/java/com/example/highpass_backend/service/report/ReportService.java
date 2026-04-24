@@ -51,7 +51,12 @@ public class ReportService {
             throw new IllegalArgumentException("Report detail must be at least 10 characters.");
         }
 
-        ResolvedTarget target = resolveTarget(reporter, targetType, request.targetId());
+        ResolvedTarget target = resolveTarget(
+                reporter,
+                targetType,
+                request.targetId(),
+                request.targetLabel()
+        );
 
         Report report = reportRepository.save(
                 Report.builder()
@@ -76,12 +81,18 @@ public class ReportService {
         }
     }
 
-    private ResolvedTarget resolveTarget(User reporter, Report.TargetType targetType, String rawTargetId) {
+    private ResolvedTarget resolveTarget(
+            User reporter,
+            Report.TargetType targetType,
+            String rawTargetId,
+            String rawTargetLabel
+    ) {
         return switch (targetType) {
             case USER -> resolveUserTarget(reporter, rawTargetId);
             case POST -> resolvePostTarget(reporter, rawTargetId);
             case COMMENT -> resolveCommentTarget(reporter, rawTargetId);
             case CHAT -> resolveChatTarget(reporter, rawTargetId);
+            case INQUIRY -> resolveInquiryTarget(reporter, rawTargetId, rawTargetLabel);
         };
     }
 
@@ -156,6 +167,18 @@ public class ReportService {
             roomLabel = UserDisplayName.nickname(partner.getUser()) + " 채팅방";
         }
         return new ResolvedTarget(String.valueOf(room.getId()), roomLabel);
+    }
+
+    private ResolvedTarget resolveInquiryTarget(
+            User reporter,
+            String rawTargetId,
+            String rawTargetLabel
+    ) {
+        String targetId = rawTargetId == null || rawTargetId.trim().isBlank()
+                ? "support-" + reporter.getId()
+                : rawTargetId.trim();
+        String targetLabel = normalizeRequired(rawTargetLabel, "targetLabel");
+        return new ResolvedTarget(targetId, targetLabel);
     }
 
     private Long parseNumericTargetId(String targetId, String errorMessage) {

@@ -67,4 +67,5 @@ public class AdminController {
     ) {
         return ResponseEntity.ok(adminService.updateReportStatus(principal.getUserId(), reportId, request.status()));
     }
+
 }
