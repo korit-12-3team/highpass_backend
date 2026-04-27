@@ -1,6 +1,7 @@
 package com.example.highpass_backend.controller.report;
 
 import com.example.highpass_backend.dto.report.CreateReportRequest;
+import com.example.highpass_backend.dto.report.CreateSupportInquiryRequest;
 import com.example.highpass_backend.dto.report.ReportResponse;
 import com.example.highpass_backend.security.CustomJwtPrincipal;
 import com.example.highpass_backend.service.report.ReportService;
@@ -23,6 +24,14 @@ public class ReportController {
             @AuthenticationPrincipal CustomJwtPrincipal principal
     ) {
         ReportResponse response = reportService.createReport(principal.getUserId(), request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/inquiries")
+    public ResponseEntity<ReportResponse> createSupportInquiry(
+            @RequestBody CreateSupportInquiryRequest request
+    ) {
+        ReportResponse response = reportService.createSupportInquiry(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }

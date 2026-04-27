@@ -1,6 +1,7 @@
 package com.example.highpass_backend.service.report;
 
 import com.example.highpass_backend.dto.report.CreateReportRequest;
+import com.example.highpass_backend.dto.report.CreateSupportInquiryRequest;
 import com.example.highpass_backend.dto.report.ReportResponse;
 import com.example.highpass_backend.dto.user.UserDisplayName;
 import com.example.highpass_backend.entity.board.Comment;
@@ -64,6 +65,37 @@ public class ReportService {
                         .targetType(targetType)
                         .targetId(target.targetId())
                         .targetLabel(target.targetLabel())
+                        .reasonCode(reasonCode)
+                        .reason(detail)
+                        .build()
+        );
+
+        return ReportResponse.from(report);
+    }
+
+    @Transactional
+    public ReportResponse createSupportInquiry(CreateSupportInquiryRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Inquiry payload is required.");
+        }
+
+        String email = normalizeRequired(request.email(), "email");
+        String title = normalizeRequired(request.title(), "title");
+        String reasonCode = normalizeRequired(request.reasonCode(), "reasonCode");
+        String detail = normalizeRequired(request.detail(), "detail");
+        if (detail.length() < 10) {
+            throw new IllegalArgumentException("Inquiry detail must be at least 10 characters.");
+        }
+
+        User reporter = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("가입된 이메일로만 계정 문의를 접수할 수 있습니다."));
+
+        Report report = reportRepository.save(
+                Report.builder()
+                        .reporter(reporter)
+                        .targetType(Report.TargetType.INQUIRY)
+                        .targetId("support-" + reporter.getId())
+                        .targetLabel(title)
                         .reasonCode(reasonCode)
                         .reason(detail)
                         .build()
