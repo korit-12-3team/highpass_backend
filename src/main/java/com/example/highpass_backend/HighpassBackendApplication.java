@@ -9,9 +9,9 @@ import java.util.TimeZone;
 @EnableJpaAuditing
 @SpringBootApplication
 public class HighpassBackendApplication {
-
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
         SpringApplication.run(HighpassBackendApplication.class, args);
     }
 }
+

@@ -20,9 +20,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     Optional<ChatRoom> findExistingChatRoom(@Param("userId") Long userId,
                                                @Param("partnerId") Long partnerId);
 
-    @Query("SELECT r FROM ChatRoom r " +
-            "JOIN r.participants p " +
-            "WHERE p.user.id = :userId")
+    @Query("SELECT DISTINCT r FROM ChatRoom r " +
+            "LEFT JOIN FETCH r.participants p " +
+            "LEFT JOIN FETCH p.user " +
+            "WHERE EXISTS (SELECT p2 FROM ChatParticipant p2 WHERE p2.chatRoom = r AND p2.user.id = :userId)")
     List<ChatRoom> findAllByUserId(@Param("userId") Long userId);
 }
 

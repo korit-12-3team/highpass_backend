@@ -8,5 +8,6 @@ public record StudyBoardCreateRequest(
     Double latitude,
     Double longitude,
     String placeId,
-    String cert
+    String cert,
+    boolean createChatRoom
 ) {}
