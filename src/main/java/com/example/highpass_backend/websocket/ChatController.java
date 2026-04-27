@@ -3,6 +3,8 @@ package com.example.highpass_backend.websocket;
 import com.example.highpass_backend.dto.chat.ChatMessageDto;
 import com.example.highpass_backend.dto.chat.ChatRoomResponse;
 import com.example.highpass_backend.entity.chat.ChatMessage;
+import com.example.highpass_backend.entity.user.User;
+import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -18,15 +20,17 @@ import java.util.List;
 public class ChatController {
     private final ChatService chatService;
     private final SimpMessageSendingOperations messagingTemplate;
-
+    private final UserRepository userRepository;
     @MessageMapping("/chat/message")
     public void message(ChatMessageDto message) {
-        if(ChatMessageDto.MessageType.ENTER.equals(message.getType())) {
-            message.setMessage( message.getSenderName() + "님이 입장하셨습니다. ");
-        }
         chatService.handleMessage(message);
-        messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
     }
 
+    @MessageMapping("/chat/join")
+    public void joinRequest(ChatMessageDto messageDto) {
+        chatService.requestJoin(messageDto.getRoomId(), messageDto.getSenderId());
+
+        messagingTemplate.convertAndSend("/sub/user/" + messageDto.getReceiverId() + "/alarm", messageDto);
+    }
 
 }

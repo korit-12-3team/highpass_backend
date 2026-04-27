@@ -26,11 +26,21 @@ public class StudyBoardDetailResponse {
     private boolean likedByUser;
     private LocalDateTime createdAt;
 
+
+    private Long chatRoomId;
+    private long currentParticipants;
+    private boolean isParticipant;
+    private String participantStatus;
+
     public static StudyBoardDetailResponse from(StudyBoard study) {
-        return from(study, false);
+        return from(study, false, null, 0, false, "NONE");
     }
 
     public static StudyBoardDetailResponse from(StudyBoard study, boolean likedByUser) {
+        return from(study, likedByUser, null, 0, false, "NONE");
+    }
+
+    public static StudyBoardDetailResponse from(StudyBoard study, boolean likedByUser, Long chatRoomId, long currentParticipants, boolean isParticipant, String participantStatus) {
         return StudyBoardDetailResponse.builder()
                 .id(study.getId())
                 .title(study.getTitle())
@@ -46,6 +56,10 @@ public class StudyBoardDetailResponse {
                 .likeCount(study.getLikeCount())
                 .likedByUser(likedByUser)
                 .createdAt(study.getCreatedAt())
+                .chatRoomId(chatRoomId)
+                .currentParticipants(currentParticipants)
+                .isParticipant(isParticipant)
+                .participantStatus(participantStatus)
                 .build();
     }
 }

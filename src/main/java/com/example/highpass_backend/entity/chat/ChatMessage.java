@@ -22,8 +22,8 @@ public class ChatMessage {
     @JoinColumn(name = "chat_room_id", nullable = false)
     private ChatRoom chatRoom;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = true)
     private User sender;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -33,10 +33,18 @@ public class ChatMessage {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
+    private MessageType type;
+
+    public enum MessageType {
+        TALK, ENTER, QUIT, NOTICE
+    }
+
     @Builder
-    public ChatMessage(ChatRoom chatRoom, User sender, String message) {
+    public ChatMessage(ChatRoom chatRoom, User sender, String message, MessageType type) {
         this.chatRoom = chatRoom;
         this.sender = sender;
         this.message = message;
+        this.type = type;
     }
 }

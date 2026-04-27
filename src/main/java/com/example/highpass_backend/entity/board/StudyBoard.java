@@ -1,5 +1,6 @@
 package com.example.highpass_backend.entity.board;
 
+import com.example.highpass_backend.entity.chat.ChatRoom;
 import com.example.highpass_backend.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,6 +23,10 @@ public class StudyBoard {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chat_room_id", nullable = true)
+    private ChatRoom chatRoom;
 
     @Column(nullable = false, length = 50)
     private String title;
@@ -72,6 +77,10 @@ public class StudyBoard {
 
     public void decreaseLikeCount() {
         if (this.likeCount > 0) this.likeCount--;
+    }
+
+    public void setChatRoom(ChatRoom chatRoom) {
+        this.chatRoom = chatRoom;
     }
 
     public void updateStudy(String title, String content, String locationName, String address, Double latitude, Double longitude, String placeId, String cert) {

@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -16,6 +17,17 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.builder()
                         .status(HttpStatus.BAD_REQUEST.value())
                         .message(e.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e) {
+        HttpStatus status = HttpStatus.valueOf(e.getStatusCode().value());
+        return ResponseEntity
+                .status(status)
+                .body(ErrorResponse.builder()
+                        .status(status.value())
+                        .message(e.getReason() == null || e.getReason().isBlank() ? status.getReasonPhrase() : e.getReason())
                         .build());
     }
 

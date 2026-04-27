@@ -27,17 +27,38 @@ public class ChatParticipant {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Setter
+    private boolean isOwner;
+
+    @Setter
+    private boolean isOnline;
+
     private String roomNickname;
 
     @Column(name = "last_read_at", nullable = false)
     private LocalDateTime lastReadAt;
 
+    @CreatedDate
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column
+    private LocalDateTime joinedAt;
+
+    public enum ParticipantStatus {
+        PENDING, JOINED, REJECTED
+    }
+
+    private ParticipantStatus status;
+
     public void updateLastRead() {
         this.lastReadAt = LocalDateTime.now();
     }
 
+
     @PrePersist
     public void prePersist() {
         this.lastReadAt = this.lastReadAt == null ? LocalDateTime.now() : this.lastReadAt;
+        this.joinedAt = LocalDateTime.now();  // 추가
     }
 }
