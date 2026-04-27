@@ -4,17 +4,15 @@ import com.example.highpass_backend.dto.admin.AdminPostResponse;
 import com.example.highpass_backend.dto.admin.AdminReportChatMessageResponse;
 import com.example.highpass_backend.dto.admin.AdminReportResponse;
 import com.example.highpass_backend.dto.admin.AdminUserResponse;
+import com.example.highpass_backend.dto.user.UserDisplayName;
+import com.example.highpass_backend.entity.auth.OAuth2Account;
 import com.example.highpass_backend.entity.board.Comment;
 import com.example.highpass_backend.entity.board.FreeBoard;
 import com.example.highpass_backend.entity.board.StudyBoard;
 import com.example.highpass_backend.entity.chat.ChatMessage;
 import com.example.highpass_backend.entity.chat.ChatParticipant;
-import com.example.highpass_backend.entity.chat.ChatRoom;
 import com.example.highpass_backend.entity.report.Report;
-import com.example.highpass_backend.entity.auth.OAuth2Account;
 import com.example.highpass_backend.entity.user.User;
-import com.example.highpass_backend.dto.user.UserDisplayName;
-import com.example.highpass_backend.repository.report.ReportRepository;
 import com.example.highpass_backend.repository.auth.OAuth2AccountRepository;
 import com.example.highpass_backend.repository.board.CommentRepository;
 import com.example.highpass_backend.repository.board.FreeBoardRepository;
@@ -22,6 +20,7 @@ import com.example.highpass_backend.repository.board.StudyBoardRepository;
 import com.example.highpass_backend.repository.chat.ChatMessageRepository;
 import com.example.highpass_backend.repository.chat.ChatParticipantRepository;
 import com.example.highpass_backend.repository.chat.ChatRoomRepository;
+import com.example.highpass_backend.repository.report.ReportRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import com.example.highpass_backend.service.user.UserPresenceService;
 import lombok.RequiredArgsConstructor;
@@ -256,164 +255,87 @@ public class AdminService {
 
     private AdminReportResponse toAdminReportResponse(Report report) {
         User reporter = report.getReporter();
-        String reporterName = reporter == null ? "" : UserDisplayName.nickname(reporter);
-        String reporterEmail = reporter == null ? "" : safe(reporter.getEmail());
-
-        AdminReportDetail detail = switch (report.getTargetType()) {
-            case USER -> buildUserReportDetail(report);
-            case POST -> buildPostReportDetail(report);
-            case COMMENT -> buildCommentReportDetail(report);
-            case CHAT -> buildChatReportDetail(report);
-            case INQUIRY -> AdminReportDetail.empty();
-        };
 
         return new AdminReportResponse(
                 String.valueOf(report.getId()),
-                report.getTargetType().name().toLowerCase(),
+                report.getTargetType().name().toLowerCase(Locale.ROOT),
                 report.getTargetId(),
                 report.getTargetLabel(),
                 report.getReason(),
-                reporterName,
-                reporterEmail,
+                new AdminReportResponse.ReporterInfo(
+                        reporter == null ? "" : UserDisplayName.nickname(reporter),
+                        reporter == null ? "" : safe(reporter.getEmail())
+                ),
                 report.getCreatedAt() == null ? "" : report.getCreatedAt().toString(),
-                report.getStatus().name().toLowerCase(),
-                detail.targetUserId(),
-                detail.targetUserNickname(),
-                detail.targetUserEmail(),
-                detail.postId(),
-                detail.postType(),
-                detail.postTitle(),
-                detail.postContent(),
-                detail.postAuthor(),
-                detail.commentId(),
-                detail.commentContent(),
-                detail.commentAuthor(),
-                detail.commentPostType(),
-                detail.commentPostId(),
-                detail.commentPostTitle(),
-                detail.chatRoomId(),
-                detail.chatRoomName(),
-                detail.chatPartnerId(),
-                detail.chatPartnerNickname(),
-                detail.chatPartnerEmail(),
-                detail.chatMessages()
+                report.getStatus().name().toLowerCase(Locale.ROOT),
+                buildUserDetail(report),
+                buildPostDetail(report),
+                buildCommentDetail(report),
+                buildChatDetail(report),
+                buildInquiryDetail(report)
         );
     }
 
-    private AdminReportDetail buildUserReportDetail(Report report) {
+    private AdminReportResponse.UserDetail buildUserDetail(Report report) {
+        if (report.getTargetType() != Report.TargetType.USER) return null;
+
         return userRepository.findById(Long.parseLong(report.getTargetId()))
-                .map(user -> new AdminReportDetail(
+                .map(user -> new AdminReportResponse.UserDetail(
                         String.valueOf(user.getId()),
                         UserDisplayName.nickname(user),
-                        safe(user.getEmail()),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        List.of()
+                        safe(user.getEmail())
                 ))
-                .orElseGet(AdminReportDetail::empty);
+                .orElse(null);
     }
 
-    private AdminReportDetail buildPostReportDetail(Report report) {
-        String targetId = safe(report.getTargetId());
-        String[] parts = targetId.split("-", 2);
-        if (parts.length != 2) {
-            return AdminReportDetail.empty();
-        }
+    private AdminReportResponse.PostDetail buildPostDetail(Report report) {
+        if (report.getTargetType() != Report.TargetType.POST) return null;
+
+        String[] parts = safe(report.getTargetId()).split("-", 2);
+        if (parts.length != 2) return null;
 
         Long postId = Long.parseLong(parts[1]);
         if ("free".equalsIgnoreCase(parts[0])) {
             return freeBoardRepository.findById(postId)
-                    .map(board -> new AdminReportDetail(
-                            String.valueOf(board.getUser().getId()),
-                            UserDisplayName.nickname(board.getUser()),
-                            safe(board.getUser().getEmail()),
+                    .map(board -> new AdminReportResponse.PostDetail(
                             String.valueOf(board.getId()),
                             "free",
                             board.getTitle(),
                             safe(board.getContent()),
-                            UserDisplayName.nickname(board.getUser()),
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            List.of()
+                            UserDisplayName.nickname(board.getUser())
                     ))
-                    .orElseGet(AdminReportDetail::empty);
+                    .orElse(null);
         }
 
         return studyBoardRepository.findById(postId)
-                .map(study -> new AdminReportDetail(
-                        String.valueOf(study.getUser().getId()),
-                        UserDisplayName.nickname(study.getUser()),
-                        safe(study.getUser().getEmail()),
+                .map(study -> new AdminReportResponse.PostDetail(
                         String.valueOf(study.getId()),
                         "study",
                         study.getTitle(),
                         safe(study.getContent()),
-                        UserDisplayName.nickname(study.getUser()),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        List.of()
+                        UserDisplayName.nickname(study.getUser())
                 ))
-                .orElseGet(AdminReportDetail::empty);
+                .orElse(null);
     }
 
-    private AdminReportDetail buildCommentReportDetail(Report report) {
+    private AdminReportResponse.CommentDetail buildCommentDetail(Report report) {
+        if (report.getTargetType() != Report.TargetType.COMMENT) return null;
+
         return commentRepository.findById(Long.parseLong(report.getTargetId()))
-                .map(comment -> {
-                    String commentPostType = comment.getTargetType().name().toLowerCase(Locale.ROOT);
-                    Long commentPostId = comment.getTargetId();
-                    String commentPostTitle = resolveCommentPostTitle(comment);
-
-                    return new AdminReportDetail(
-                            String.valueOf(comment.getUser().getId()),
-                            UserDisplayName.nickname(comment.getUser()),
-                            safe(comment.getUser().getEmail()),
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            String.valueOf(comment.getId()),
-                            safe(comment.getContent()),
-                            UserDisplayName.nickname(comment.getUser()),
-                            commentPostType,
-                            String.valueOf(commentPostId),
-                            commentPostTitle,
-                            null,
-                            null,
-                            null,
-                            List.of()
-                    );
-                })
-                .orElseGet(AdminReportDetail::empty);
+                .map(comment -> new AdminReportResponse.CommentDetail(
+                        String.valueOf(comment.getId()),
+                        safe(comment.getContent()),
+                        UserDisplayName.nickname(comment.getUser()),
+                        comment.getTargetType().name().toLowerCase(Locale.ROOT),
+                        String.valueOf(comment.getTargetId()),
+                        resolveCommentPostTitle(comment)
+                ))
+                .orElse(null);
     }
 
-    private AdminReportDetail buildChatReportDetail(Report report) {
+    private AdminReportResponse.ChatDetail buildChatDetail(Report report) {
+        if (report.getTargetType() != Report.TargetType.CHAT) return null;
+
         Long roomId = Long.parseLong(report.getTargetId());
         return chatRoomRepository.findById(roomId)
                 .map(room -> {
@@ -422,6 +344,14 @@ public class AdminService {
                             .filter(participant -> reporter == null || !participant.getUser().getId().equals(reporter.getId()))
                             .findFirst()
                             .orElse(null);
+
+                    AdminReportResponse.ChatPartner chatPartner = partner == null
+                            ? null
+                            : new AdminReportResponse.ChatPartner(
+                                    String.valueOf(partner.getUser().getId()),
+                                    UserDisplayName.nickname(partner.getUser()),
+                                    safe(partner.getUser().getEmail())
+                            );
 
                     List<AdminReportChatMessageResponse> messages = chatMessageRepository.findByChatRoomIdOrderByCreatedAtAsc(roomId).stream()
                             .filter(message -> message.getType() == ChatMessage.MessageType.TALK)
@@ -436,30 +366,23 @@ public class AdminService {
                             ))
                             .toList();
 
-                    return new AdminReportDetail(
-                            partner == null ? null : String.valueOf(partner.getUser().getId()),
-                            partner == null ? null : UserDisplayName.nickname(partner.getUser()),
-                            partner == null ? null : safe(partner.getUser().getEmail()),
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
+                    return new AdminReportResponse.ChatDetail(
                             String.valueOf(room.getId()),
                             safe(room.getName()),
-                            partner == null ? null : String.valueOf(partner.getUser().getId()),
-                            partner == null ? null : UserDisplayName.nickname(partner.getUser()),
-                            partner == null ? null : safe(partner.getUser().getEmail()),
+                            chatPartner,
                             messages
                     );
                 })
-                .orElseGet(AdminReportDetail::empty);
+                .orElse(null);
+    }
+
+    private AdminReportResponse.InquiryDetail buildInquiryDetail(Report report) {
+        if (report.getTargetType() != Report.TargetType.INQUIRY) return null;
+
+        return new AdminReportResponse.InquiryDetail(
+                report.getTargetLabel(),
+                report.getReporter() == null ? "" : safe(report.getReporter().getEmail())
+        );
     }
 
     private String resolveCommentPostTitle(Comment comment) {
@@ -479,38 +402,5 @@ public class AdminService {
 
     private String normalizeStatus(String status) {
         return status == null ? "" : status.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private record AdminReportDetail(
-            String targetUserId,
-            String targetUserNickname,
-            String targetUserEmail,
-            String postId,
-            String postType,
-            String postTitle,
-            String postContent,
-            String postAuthor,
-            String commentId,
-            String commentContent,
-            String commentAuthor,
-            String commentPostType,
-            String commentPostId,
-            String commentPostTitle,
-            String chatRoomId,
-            String chatRoomName,
-            String chatPartnerId,
-            String chatPartnerNickname,
-            String chatPartnerEmail,
-            List<AdminReportChatMessageResponse> chatMessages
-    ) {
-        private static AdminReportDetail empty() {
-            return new AdminReportDetail(
-                    null, null, null,
-                    null, null, null, null, null,
-                    null, null, null, null, null, null,
-                    null, null, null, null, null,
-                    List.of()
-            );
-        }
     }
 }

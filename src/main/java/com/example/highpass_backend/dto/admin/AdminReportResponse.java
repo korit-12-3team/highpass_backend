@@ -8,29 +8,65 @@ public record AdminReportResponse(
         String targetId,
         String targetLabel,
         String reason,
-        String reporter,
-        String reporterEmail,
+        ReporterInfo reporter,
         String createdAt,
         String status,
-        String targetUserId,
-        String targetUserNickname,
-        String targetUserEmail,
-        String postId,
-        String postType,
-        String postTitle,
-        String postContent,
-        String postAuthor,
-        String commentId,
-        String commentContent,
-        String commentAuthor,
-        String commentPostType,
-        String commentPostId,
-        String commentPostTitle,
-        String chatRoomId,
-        String chatRoomName,
-        String chatPartnerId,
-        String chatPartnerNickname,
-        String chatPartnerEmail,
-        List<AdminReportChatMessageResponse> chatMessages
+        UserDetail userDetail,
+        PostDetail postDetail,
+        CommentDetail commentDetail,
+        ChatDetail chatDetail,
+        InquiryDetail inquiryDetail
 ) {
+    public record ReporterInfo(
+            String name,
+            String email
+    ) {
+    }
+
+    public record UserDetail(
+            String userId,
+            String nickname,
+            String email
+    ) {
+    }
+
+    public record PostDetail(
+            String postId,
+            String postType,
+            String title,
+            String content,
+            String author
+    ) {
+    }
+
+    public record CommentDetail(
+            String commentId,
+            String content,
+            String author,
+            String postType,
+            String postId,
+            String postTitle
+    ) {
+    }
+
+    public record ChatDetail(
+            String roomId,
+            String roomName,
+            ChatPartner partner,
+            List<AdminReportChatMessageResponse> messages
+    ) {
+    }
+
+    public record ChatPartner(
+            String userId,
+            String nickname,
+            String email
+    ) {
+    }
+
+    public record InquiryDetail(
+            String title,
+            String accountEmail
+    ) {
+    }
 }

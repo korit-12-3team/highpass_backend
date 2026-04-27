@@ -39,6 +39,42 @@ public class CookieUtils {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
+    public void addKakaoCalendarAccessTokenCookie(HttpServletResponse response, String token, Duration maxAge) {
+        ResponseCookie cookie = ResponseCookie.from("kakao_calendar_access_token", token)
+                .httpOnly(true)
+                .secure(appProperties.isSecureCookie())
+                .sameSite(appProperties.isSecureCookie() ? "None" : "Lax")
+                .path("/")
+                .maxAge(maxAge)
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    public void addKakaoCalendarRefreshTokenCookie(HttpServletResponse response, String token, Duration maxAge) {
+        ResponseCookie cookie = ResponseCookie.from("kakao_calendar_refresh_token", token)
+                .httpOnly(true)
+                .secure(appProperties.isSecureCookie())
+                .sameSite(appProperties.isSecureCookie() ? "None" : "Lax")
+                .path("/")
+                .maxAge(maxAge)
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    public void addKakaoCalendarAccessTokenExpiryCookie(HttpServletResponse response, String expiresAt, Duration maxAge) {
+        ResponseCookie cookie = ResponseCookie.from("kakao_calendar_access_token_expires_at", expiresAt)
+                .httpOnly(true)
+                .secure(appProperties.isSecureCookie())
+                .sameSite(appProperties.isSecureCookie() ? "None" : "Lax")
+                .path("/")
+                .maxAge(maxAge)
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
     public void deleteAccessTokenCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("access_token", "")
                 .httpOnly(true)
@@ -63,6 +99,12 @@ public class CookieUtils {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
+    public void deleteKakaoCalendarCookies(HttpServletResponse response) {
+        response.addHeader(HttpHeaders.SET_COOKIE, buildExpiredCookie("kakao_calendar_access_token"));
+        response.addHeader(HttpHeaders.SET_COOKIE, buildExpiredCookie("kakao_calendar_refresh_token"));
+        response.addHeader(HttpHeaders.SET_COOKIE, buildExpiredCookie("kakao_calendar_access_token_expires_at"));
+    }
+
     public String getCookieValue(HttpServletRequest request, String cookieName) {
         if (request.getCookies() == null) return null;
 
@@ -72,5 +114,16 @@ public class CookieUtils {
             }
         }
         return null;
+    }
+
+    private String buildExpiredCookie(String cookieName) {
+        return ResponseCookie.from(cookieName, "")
+                .httpOnly(true)
+                .secure(appProperties.isSecureCookie())
+                .sameSite(appProperties.isSecureCookie() ? "None" : "Lax")
+                .path("/")
+                .maxAge(0)
+                .build()
+                .toString();
     }
 }
