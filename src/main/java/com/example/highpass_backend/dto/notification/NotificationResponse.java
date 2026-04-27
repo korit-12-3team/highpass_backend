@@ -2,6 +2,7 @@ package com.example.highpass_backend.dto.notification;
 
 import com.example.highpass_backend.entity.notification.Notification;
 import com.example.highpass_backend.entity.notification.NotificationType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public class NotificationResponse {
     private Long targetId;
     private String targetType;
     private String content;
+    @JsonProperty("isRead")
     private boolean isRead;
     private LocalDateTime createdAt;
 
