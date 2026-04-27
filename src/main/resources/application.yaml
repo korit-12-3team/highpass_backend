@@ -46,6 +46,14 @@ spring:
             scope:
               - profile_nickname
               - account_email
+          kakao-calendar:
+            client-name: Kakao Calendar
+            client-id: ${KAKAO_REST_API_KEY}
+            provider: kakao
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - talk_calendar
 
         provider:
           kakao:

@@ -35,7 +35,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         if ("google".equals(registrationId)) {
             userInfo = new GoogleUserInfo(attributes);
             provider = OAuthProvider.GOOGLE;
-        } else if ("kakao".equals(registrationId)) {
+        } else if ("kakao".equals(registrationId) || "kakao-calendar".equals(registrationId)) {
             userInfo = new KakaoUserInfo(attributes);
             provider = OAuthProvider.KAKAO;
         } else {
