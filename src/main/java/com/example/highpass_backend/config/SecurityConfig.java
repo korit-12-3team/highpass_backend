@@ -1,10 +1,8 @@
 package com.example.highpass_backend.config;
 
-
 import com.example.highpass_backend.security.JwtAuthenticationFilter;
 import com.example.highpass_backend.security.OAuth2SuccessHandler;
 import com.example.highpass_backend.service.oauth2.CustomOAuth2UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -40,19 +38,26 @@ public class SecurityConfig {
                         .defaultAuthenticationEntryPointFor(
                                 new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
                                 request -> request.getServletPath().startsWith("/api/")
+                                        || request.getServletPath().startsWith("/chat/")
                         )
                         .defaultAccessDeniedHandlerFor(
                                 (request, response, accessDeniedException) ->
                                         response.sendError(HttpServletResponse.SC_FORBIDDEN),
                                 request -> request.getServletPath().startsWith("/api/")
+                                        || request.getServletPath().startsWith("/chat/")
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/login/","/oauth2/**","/api/auth/**","/api/oauth2/**", "/api/boards/**",
-                                "/api/calendar/**", "/api/study/**", "/api/likes/**", "/api/comments/**", "/api/chat/**", "/chat/**"
-                                ,"/api/todos/**","/api/user-certificates/**", "/api/certificates/**", "/ws-stomp/**", "/api/users/**", "/rooms/**", "/api/notifications/**", "/api/reports/inquiries")
-                        .permitAll()
-                        .requestMatchers("/api/**").authenticated()   // 보호할 API만
+                        .requestMatchers("/api/users/me", "/api/users/me/**").authenticated()
+                        .requestMatchers("/api/notifications/**").authenticated()
+                        .requestMatchers("/chat/**").authenticated()
+                        .requestMatchers(
+                                "/", "/login/", "/oauth2/**", "/api/auth/**", "/api/oauth2/**",
+                                "/api/boards/**", "/api/calendar/**", "/api/study/**", "/api/likes/**",
+                                "/api/comments/**", "/api/chat/**", "/api/todos/**", "/api/user-certificates/**",
+                                "/api/certificates/**", "/api/users/**", "/ws-stomp/**", "/rooms/**", "/api/reports/inquiries"
+                        ).permitAll()
+                        .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2

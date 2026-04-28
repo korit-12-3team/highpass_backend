@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @Getter
 public class ChatRoomResponse {
     private Long id;
@@ -19,6 +18,9 @@ public class ChatRoomResponse {
     private Long unreadCount;
     private String lastMessage;
     private LocalDateTime lastMessageTime;
+    private Long partnerId;
+    private String partnerNickname;
+    private String roomNickname;
     private List<ChatMessageDto> messages;
     private List<ChatParticipantResponse> participants;
 
@@ -28,72 +30,92 @@ public class ChatRoomResponse {
         this.ownerId = entity.getOwnerId();
 
         this.participants = entity.getParticipants().stream()
-                .filter(p -> p.getUser() != null && p.getStatus() != null)
+                .filter(participant -> participant.getUser() != null)
                 .map(ChatParticipantResponse::new)
                 .collect(Collectors.toList());
 
         ChatParticipant myParticipation = entity.getParticipants().stream()
-                .filter(p -> p.getUser() != null)
-                .filter(p -> p.getUser().getId().equals(currentUserId))
+                .filter(participant -> participant.getUser() != null)
+                .filter(participant -> participant.getUser().getId().equals(currentUserId))
                 .findFirst()
                 .orElse(null);
 
-        LocalDateTime myLastReadAt = (myParticipation != null) ? myParticipation.getLastReadAt() : null;
-        LocalDateTime joinedAt = (myParticipation != null) ? myParticipation.getJoinedAt() : null;
+        ChatParticipant partnerParticipation = entity.getParticipants().stream()
+                .filter(participant -> participant.getUser() != null)
+                .filter(participant -> !participant.getUser().getId().equals(currentUserId))
+                .findFirst()
+                .orElse(null);
 
-        boolean isJoined = myParticipation != null &&
-                myParticipation.getStatus() == ChatParticipant.ParticipantStatus.JOINED;
+        this.partnerId = partnerParticipation != null ? partnerParticipation.getUser().getId() : null;
+        this.partnerNickname = partnerParticipation != null ? partnerParticipation.getUser().getNickname() : null;
+        this.roomNickname = myParticipation != null ? myParticipation.getRoomNickname() : null;
+
+        LocalDateTime myLastReadAt = myParticipation != null ? myParticipation.getLastReadAt() : null;
+        LocalDateTime joinedAt = myParticipation != null ? myParticipation.getJoinedAt() : null;
+
+        boolean isJoined = myParticipation != null && (
+                myParticipation.getStatus() == ChatParticipant.ParticipantStatus.JOINED
+                        || (entity.getType() == ChatRoom.ChatType.PERSONAL && myParticipation.getStatus() == null)
+        );
 
         this.name = entity.getType() == ChatRoom.ChatType.GROUP
                 ? entity.getName()
-                : this.participants.stream()
-                .filter(p -> !p.getUserId().equals(currentUserId))
-                .map(ChatParticipantResponse::getNickname)
-                .findFirst()
-                .orElse("대화 상대 없음");
-
+                : firstNonBlank(this.roomNickname, this.partnerNickname, "대화상대없음");
 
         this.messages = new ArrayList<>();
 
         if (!isJoined) {
             this.unreadCount = 0L;
-            this.lastMessage = "승인 대기 중입니다.";
+            this.lastMessage = "확인 대기 중입니다.";
             this.lastMessageTime = entity.getCreatedAt();
-        } else if (entity.getMessages() != null && !entity.getMessages().isEmpty()) {
+            return;
+        }
+
+        if (entity.getMessages() != null && !entity.getMessages().isEmpty()) {
             this.messages = entity.getMessages().stream()
-                    .filter(m -> joinedAt == null || m.getCreatedAt().isAfter(joinedAt))
-                    .map(m -> {
+                    .filter(message -> joinedAt == null || message.getCreatedAt().isAfter(joinedAt))
+                    .map(message -> {
                         long unread = entity.getParticipants().stream()
-                                .filter(p -> p.getUser() != null && !p.getUser().getId().equals(currentUserId))
-                                .filter(p -> p.getLastReadAt() == null || p.getLastReadAt().isBefore(m.getCreatedAt()))
+                                .filter(participant -> participant.getUser() != null && !participant.getUser().getId().equals(currentUserId))
+                                .filter(participant -> participant.getLastReadAt() == null || participant.getLastReadAt().isBefore(message.getCreatedAt()))
                                 .count();
+
                         return ChatMessageDto.builder()
                                 .roomId(this.id)
-                                .senderId(m.getSender() != null ? m.getSender().getId() : 0L)
-                                .senderName(m.getSender() != null ? m.getSender().getNickname() : "알 수 없음")
-                                .message(m.getMessage())
-                                .createdAt(m.getCreatedAt())
-                                .type(m.getType() != null ? ChatMessageDto.MessageType.valueOf(m.getType().name()) : ChatMessageDto.MessageType.TALK)
+                                .senderId(message.getSender() != null ? message.getSender().getId() : 0L)
+                                .senderName(message.getSender() != null ? message.getSender().getNickname() : "알 수 없음")
+                                .message(message.getMessage())
+                                .createdAt(message.getCreatedAt())
+                                .type(message.getType() != null
+                                        ? ChatMessageDto.MessageType.valueOf(message.getType().name())
+                                        : ChatMessageDto.MessageType.TALK)
                                 .unreadCount(unread)
                                 .build();
                     })
                     .collect(Collectors.toList());
 
-            var lastMsgEntity = entity.getMessages().get(entity.getMessages().size() - 1);
-            this.lastMessage = lastMsgEntity.getMessage();
-            this.lastMessageTime = lastMsgEntity.getCreatedAt();
+            var lastMessageEntity = entity.getMessages().get(entity.getMessages().size() - 1);
+            this.lastMessage = lastMessageEntity.getMessage();
+            this.lastMessageTime = lastMessageEntity.getCreatedAt();
 
             this.unreadCount = entity.getMessages().stream()
-                    .filter(m -> m.getSender() != null && !m.getSender().getId().equals(currentUserId))
-                    .filter(m -> {
-                        if (myLastReadAt == null) return true;
-                        return m.getCreatedAt().withNano(0).isAfter(myLastReadAt.withNano(0));
-                    })
+                    .filter(message -> message.getSender() != null && !message.getSender().getId().equals(currentUserId))
+                    .filter(message -> myLastReadAt == null || message.getCreatedAt().withNano(0).isAfter(myLastReadAt.withNano(0)))
                     .count();
-        } else {
-            this.unreadCount = 0L;
-            this.lastMessage = "대화 내역이 없습니다.";
-            this.lastMessageTime = entity.getCreatedAt();
+            return;
         }
+
+        this.unreadCount = 0L;
+        this.lastMessage = "대화 내역이 없습니다.";
+        this.lastMessageTime = entity.getCreatedAt();
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 }

@@ -38,10 +38,6 @@ public class ChatParticipant {
     @Column(name = "last_read_at", nullable = false)
     private LocalDateTime lastReadAt;
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
     @Column
     private LocalDateTime joinedAt;
 
