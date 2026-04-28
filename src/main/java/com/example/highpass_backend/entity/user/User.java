@@ -61,19 +61,11 @@ public class User {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-//    @Column(name = "updated_at")
-//    private LocalDateTime updatedAt;
-
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
 //        this.updatedAt = LocalDateTime.now();
     }
-
-//    @PreUpdate
-//    public void preUpdate() {
-//        this.updatedAt = LocalDateTime.now();
-//    }
 
     // 알림 설정
     @Builder.Default // 🚨 빌더로 생성할 때도 true가 기본값이 되도록 보장합니다!
