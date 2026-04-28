@@ -12,6 +12,6 @@ public class ChatParticipantResponse {
     public ChatParticipantResponse(ChatParticipant entity) {
         this.userId = entity.getUser() != null ? entity.getUser().getId() : null;
         this.nickname = entity.getUser() != null ? entity.getUser().getNickname() : "알 수 없음";
-        this.status = entity.getStatus() != null ? entity.getStatus().name() : "PENDING";
+        this.status = entity.getStatus() != null ? entity.getStatus().name() : "JOINED";
     }
 }

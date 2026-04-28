@@ -3,6 +3,7 @@ package com.example.highpass_backend.websocket;
 import com.example.highpass_backend.dto.chat.ChatMessageDto;
 import com.example.highpass_backend.dto.chat.ChatParticipantResponse;
 import com.example.highpass_backend.dto.chat.ChatRoomResponse;
+import com.example.highpass_backend.dto.chat.StudyChatJoinResponse;
 import com.example.highpass_backend.entity.board.StudyBoard;
 import com.example.highpass_backend.entity.chat.ChatMessage;
 import com.example.highpass_backend.entity.chat.ChatParticipant;
@@ -19,6 +20,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -53,12 +55,14 @@ public class ChatService {
                             .chatRoom(room)
                             .user(user)
                             .roomNickname(partner.getNickname())
+                            .status(ChatParticipant.ParticipantStatus.JOINED)
                             .build();
 
                     ChatParticipant partnerInfo = ChatParticipant.builder()
                             .chatRoom(room)
                             .user(partner)
                             .roomNickname(user.getNickname())
+                            .status(ChatParticipant.ParticipantStatus.JOINED)
                             .build();
 
                     chatParticipantRepository.save(userInfo);
@@ -106,7 +110,11 @@ public class ChatService {
     }
 
     @Transactional
-    public void rejectParticipant(Long roomId, Long targetUserId) {
+    public void rejectParticipant(Long roomId, Long ownerId, Long targetUserId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방입니다."));
+        if (!chatRoom.getOwnerId().equals(ownerId)) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
         ChatParticipant participant = chatParticipantRepository.findByChatRoomIdAndUserId(roomId, targetUserId).orElseThrow(() -> new RuntimeException("신청 내역이 없습니다 "));
 
         chatParticipantRepository.delete(participant);
@@ -142,10 +150,12 @@ public class ChatService {
     @Transactional
     public void handleMessage(ChatMessageDto messageDto) {
         if (ChatMessageDto.MessageType.ENTER.equals(messageDto.getType())) {
+            messageDto.setCreatedAt(LocalDateTime.now());
             messageDto.setEnterMessage();
             updateLastReadTime(messageDto.getRoomId(), messageDto.getSenderId());
             messageDto.setUnreadCount(0L);
         } else if (ChatMessageDto.MessageType.TALK.equals(messageDto.getType())) {
+            messageDto.setCreatedAt(LocalDateTime.now());
             int unreadCount = chatParticipantRepository.countOfflineParticipants(messageDto.getRoomId(), messageDto.getSenderId());
             messageDto.setUnreadCount((long) unreadCount);
 
@@ -174,12 +184,6 @@ public class ChatService {
                 .build();
         chatMessageRepository.save(chatMessage);
 
-        ChatParticipant participant = ChatParticipant.builder()
-                .chatRoom(chatRoom)
-                .user(sender)
-                .roomNickname(sender.getNickname())
-                .status(ChatParticipant.ParticipantStatus.JOINED)
-                .build();
     }
 
     @Transactional
@@ -225,7 +229,12 @@ public class ChatService {
     }
 
     @Transactional
-    public void approveParticipant(Long roomId, Long targetUserId) {
+    public void approveParticipant(Long roomId, Long ownerId, Long targetUserId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방입니다."));
+        if (!chatRoom.getOwnerId().equals(ownerId)) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
         ChatParticipant participant = chatParticipantRepository
                 .findByChatRoomIdAndUserId(roomId, targetUserId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방 또는 사용자입니다."));
@@ -262,7 +271,7 @@ public class ChatService {
 
         ChatMessage kickMessage = ChatMessage.builder()
                 .chatRoom(room)
-                .sender(null)
+                .sender(target.getUser())
                 .message(nickname + "님이 강퇴되었습니다.")
                 .type(ChatMessage.MessageType.QUIT)
                 .build();
@@ -294,23 +303,24 @@ public class ChatService {
 
         ChatMessage leaveMessage = ChatMessage.builder()
                 .chatRoom(room)
+                .sender(participant.getUser())
                 .message(nickname + "님이 나가셨습니다.")
                 .type(ChatMessage.MessageType.QUIT)
                 .build();
         chatMessageRepository.save(leaveMessage);
 
 
-        if (room.getOwnerId().equals(userId)) {
-            List<ChatParticipant> remaining = chatParticipantRepository.findByChatRoomId(roomId);
-            if (remaining.isEmpty()) {
-                studyBoardRepository.findByChatRoomId(room.getId())
-                        .ifPresent(study -> study.setChatRoom(null));
-                chatRoomRepository.delete(room);
-            } else {
-                ChatParticipant newOwner = remaining.get(0);
-                newOwner.setOwner(true);
-                room.setOwnerId(newOwner.getUser().getId());
-            }
+        List<ChatParticipant> remaining = chatParticipantRepository.findByChatRoomId(roomId);
+        boolean ownerLeaving = room.getOwnerId() != null && room.getOwnerId().equals(userId);
+
+        if (remaining.isEmpty()) {
+            studyBoardRepository.findByChatRoomId(room.getId())
+                    .ifPresent(study -> study.setChatRoom(null));
+            chatRoomRepository.delete(room);
+        } else if (ownerLeaving) {
+            ChatParticipant newOwner = remaining.get(0);
+            newOwner.setOwner(true);
+            room.setOwnerId(newOwner.getUser().getId());
         }
 
         messagingTemplate.convertAndSend("/sub/chat/room/" + roomId,
@@ -323,7 +333,7 @@ public class ChatService {
     }
 
     @Transactional
-    public String joinStudyChat(Long studyId, Long userId) {
+    public StudyChatJoinResponse joinStudyChat(Long studyId, Long userId) {
         StudyBoard study = studyBoardRepository.findById(studyId)
                 .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
 
@@ -345,7 +355,7 @@ public class ChatService {
 
         Optional<ChatParticipant> existing = chatParticipantRepository.findByChatRoomIdAndUserId(room.getId(), userId);
         if (existing.isPresent()) {
-                return existing.get().getStatus().name();
+                return new StudyChatJoinResponse(room.getId(), existing.get().getStatus().name());
         }
 
         boolean isOwner = study.getUser().getId().equals(userId);
@@ -364,7 +374,7 @@ public class ChatService {
                     user.getNickname() + "님이 입장하셨습니다.");
         }
 
-        return participant.getStatus().name();
+        return new StudyChatJoinResponse(room.getId(), participant.getStatus().name());
     }
 }
 
