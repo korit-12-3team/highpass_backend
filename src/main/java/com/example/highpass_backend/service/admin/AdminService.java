@@ -54,14 +54,8 @@ public class AdminService {
         requireAdmin(adminUserId);
         return userRepository.findAll().stream()
                 .filter(user -> user.getRole() != User.Role.ADMIN)
-                .map(user -> AdminUserResponse.from(
-                        user,
-                        findSocialProvider(user.getId()),
-                        userPresenceService.isOnline(user.getId()),
-                        countPosts(user.getId()),
-                        countUserComments(user.getId()),
-                        countReportsForUser(user.getId())
-                ))
+                .map(this::toAdminUserResponse)
+                .sorted(Comparator.comparing(AdminUserResponse::createdAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                 .toList();
     }
 
@@ -73,14 +67,7 @@ public class AdminService {
 
         user.updateStatus(parseUserStatus(status));
 
-        return AdminUserResponse.from(
-                user,
-                findSocialProvider(user.getId()),
-                userPresenceService.isOnline(user.getId()),
-                countPosts(user.getId()),
-                countUserComments(user.getId()),
-                countReportsForUser(user.getId())
-        );
+        return toAdminUserResponse(user);
     }
 
     @Transactional(readOnly = true)
@@ -207,6 +194,17 @@ public class AdminService {
 
     private int countReportsForUser(Long userId) {
         return reportRepository.countByTargetTypeAndTargetId(Report.TargetType.USER, String.valueOf(userId));
+    }
+
+    private AdminUserResponse toAdminUserResponse(User user) {
+        return AdminUserResponse.from(
+                user,
+                findSocialProvider(user.getId()),
+                userPresenceService.isOnline(user.getId()),
+                countPosts(user.getId()),
+                countUserComments(user.getId()),
+                countReportsForUser(user.getId())
+        );
     }
 
     private String findSocialProvider(Long userId) {
