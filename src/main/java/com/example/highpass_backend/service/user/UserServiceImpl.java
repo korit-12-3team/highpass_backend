@@ -8,6 +8,7 @@ import com.example.highpass_backend.entity.auth.OAuth2Account;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.auth.OAuth2AccountRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
+import com.example.highpass_backend.util.NicknameNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,13 +37,16 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(Long userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        String sanitizedNickname = NicknameNormalizer.sanitizeForStorage(request.getNickname());
 
         if (user.getPassword() != null && !user.getPassword().isBlank()) {
             validateCurrentPassword(user, request.getCurrentPassword());
         }
 
+        validateNicknameAvailability(sanitizedNickname, user.getId());
+
         user.updateProfile(
-                request.getNickname(),
+                sanitizedNickname,
                 request.getAgeRange(),
                 request.getGender(),
                 request.getSiDo(),
@@ -104,6 +108,15 @@ public class UserServiceImpl implements UserService {
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+    }
+
+    private void validateNicknameAvailability(String nickname, Long excludeUserId) {
+        if (nickname == null || nickname.isBlank()) {
+            throw new IllegalArgumentException("닉네임을 입력해 주세요.");
+        }
+        if (userRepository.existsByNicknameAndIdNot(nickname, excludeUserId)) {
+            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
         }
     }
 

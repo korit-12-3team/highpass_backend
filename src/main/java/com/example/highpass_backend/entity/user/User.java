@@ -2,6 +2,7 @@ package com.example.highpass_backend.entity.user;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.example.highpass_backend.util.NicknameNormalizer;
 
 import java.time.LocalDateTime;
 
@@ -27,7 +28,7 @@ public class User {
 
     private String password;       // 일반 회원만 저장, 소셜은 null
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 50, unique = true)
     private String nickname;
 
     @Column(name = "age_range", length = 20)
@@ -64,7 +65,13 @@ public class User {
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+        this.nickname = NicknameNormalizer.sanitizeForStorage(this.nickname);
 //        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.nickname = NicknameNormalizer.sanitizeForStorage(this.nickname);
     }
 
     // 알림 설정
@@ -89,7 +96,7 @@ public class User {
     }
 
     public void updateProfile(String nickname, String ageRange, String gender, String siDo, String gunGu) {
-        this.nickname = nickname;
+        this.nickname = NicknameNormalizer.sanitizeForStorage(nickname);
         this.ageRange = ageRange;
         this.gender = gender;
         this.siDo = siDo;

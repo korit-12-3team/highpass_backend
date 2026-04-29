@@ -24,6 +24,9 @@ public class NationalCertificate {
     @Column(name = "exam_year", nullable = false)
     private int year;
 
+    @Column(nullable = false)
+    private int round;
+
     @Column(name = "written_Apply_Start")
     private LocalDate writtenApplyStart;
 

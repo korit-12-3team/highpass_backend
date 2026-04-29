@@ -12,4 +12,10 @@ public interface NationalCertificateRepository extends JpaRepository<NationalCer
             java.time.LocalDate writtenApplyStart,
             java.time.LocalDate practicalApplyStart
     );
+
+    Optional<NationalCertificate> findByCertificateNameAndYearAndWrittenExamDate(
+            String certificateName,
+            int year,
+            java.time.LocalDate writtenExamDate
+    );
 }
