@@ -2,10 +2,13 @@ package com.example.highpass_backend.controller.board;
 
 import com.example.highpass_backend.dto.board.CommentRequest;
 import com.example.highpass_backend.dto.board.CommentResponse;
+import com.example.highpass_backend.security.CustomJwtPrincipal;
 import com.example.highpass_backend.service.board.CommentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +21,11 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<CommentResponse> addComment(@RequestBody CommentRequest request) {
-        CommentResponse response = commentService.createComment(request);
+    public ResponseEntity<CommentResponse> addComment(
+            @AuthenticationPrincipal CustomJwtPrincipal principal,
+            @Valid @RequestBody CommentRequest request
+    ) {
+        CommentResponse response = commentService.createComment(principal.getUserId(), request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -31,23 +37,22 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getCommentsByTarget(targetId, targetType));
     }
 
-    @PatchMapping("/{commentId}/{userId}")
+    @PatchMapping("/{commentId}")
     public ResponseEntity<CommentResponse> updateComment(
             @PathVariable Long commentId,
-            @PathVariable Long userId,
-            @RequestBody CommentRequest request) {
+            @AuthenticationPrincipal CustomJwtPrincipal principal,
+            @Valid @RequestBody CommentRequest request) {
 
-        CommentResponse response = commentService.updateComment(commentId, request, userId);
+        CommentResponse response = commentService.updateComment(commentId, request, principal.getUserId());
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{commentId}/{userId}")
+    @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long commentId,
-            @PathVariable Long userId) {
+            @AuthenticationPrincipal CustomJwtPrincipal principal) {
 
-        commentService.deleteComment(commentId, userId);
+        commentService.deleteComment(commentId, principal.getUserId());
         return ResponseEntity.ok().build();
     }
 }
-

@@ -9,6 +9,7 @@ import com.example.highpass_backend.security.CustomJwtPrincipal;
 import com.example.highpass_backend.service.auth.RefreshTokenService;
 import com.example.highpass_backend.service.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,39 +36,38 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 
-    @PatchMapping("/{userId}")
+    @PatchMapping("/me")
     public ResponseEntity<UserResponse> updateUser(
-            @PathVariable Long userId,
-            @RequestBody UpdateUserRequest request
+            @AuthenticationPrincipal CustomJwtPrincipal principal,
+            @Valid @RequestBody UpdateUserRequest request
     ) {
-        return ResponseEntity.ok(userService.updateUser(userId, request));
+        return ResponseEntity.ok(userService.updateUser(principal.getUserId(), request));
     }
 
-    @PatchMapping("/{userId}/password")
+    @PatchMapping("/me/password")
     public ResponseEntity<Void> updatePassword(
-            @PathVariable Long userId,
-            @RequestBody UpdatePasswordRequest request
+            @AuthenticationPrincipal CustomJwtPrincipal principal,
+            @Valid @RequestBody UpdatePasswordRequest request
     ) {
-        userService.updatePassword(userId, request);
+        userService.updatePassword(principal.getUserId(), request);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{userId}/password/verify")
+    @PostMapping("/me/password/verify")
     public ResponseEntity<Void> verifyPassword(
-            @PathVariable Long userId,
-            @RequestBody VerifyPasswordRequest request
+            @AuthenticationPrincipal CustomJwtPrincipal principal,
+            @Valid @RequestBody VerifyPasswordRequest request
     ) {
-        userService.verifyPassword(userId, request);
+        userService.verifyPassword(principal.getUserId(), request);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/me")
     public ResponseEntity<Void> withdrawUser(
-            @PathVariable Long userId,
             @AuthenticationPrincipal CustomJwtPrincipal principal,
             HttpServletResponse response
     ) {
-        userService.withdrawUser(principal.getUserId(), userId);
+        userService.withdrawUser(principal.getUserId(), principal.getUserId());
         refreshTokenService.delete(principal.getUserId());
         cookieUtils.deleteAccessTokenCookie(response);
         cookieUtils.deleteRefreshTokenCookie(response);

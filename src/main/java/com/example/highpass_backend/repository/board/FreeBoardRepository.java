@@ -12,4 +12,9 @@ public interface FreeBoardRepository extends JpaRepository<FreeBoard, Long> {
 
     List<FreeBoard> findByUserId(Long userId);
 
+    long countByUserId(Long userId);
+
+    List<FreeBoard> findByStatusOrStatusIsNullOrderByCreatedAtDesc(FreeBoard.Status status);
+
+    List<FreeBoard> findAllByOrderByCreatedAtDesc();
 }

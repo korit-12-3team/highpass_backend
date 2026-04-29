@@ -6,6 +6,7 @@ import com.example.highpass_backend.dto.admin.AdminStatusRequest;
 import com.example.highpass_backend.dto.admin.AdminUserResponse;
 import com.example.highpass_backend.security.CustomJwtPrincipal;
 import com.example.highpass_backend.service.admin.AdminService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,7 +31,7 @@ public class AdminController {
     @PatchMapping("/users/{userId}/status")
     public ResponseEntity<AdminUserResponse> updateUserStatus(
             @PathVariable Long userId,
-            @RequestBody AdminStatusRequest request,
+            @Valid @RequestBody AdminStatusRequest request,
             @AuthenticationPrincipal CustomJwtPrincipal principal
     ) {
         return ResponseEntity.ok(adminService.updateUserStatus(principal.getUserId(), userId, request.status()));
@@ -46,7 +47,7 @@ public class AdminController {
     @PatchMapping("/posts/{postId}/status")
     public ResponseEntity<AdminPostResponse> updatePostStatus(
             @PathVariable String postId,
-            @RequestBody AdminStatusRequest request,
+            @Valid @RequestBody AdminStatusRequest request,
             @AuthenticationPrincipal CustomJwtPrincipal principal
     ) {
         return ResponseEntity.ok(adminService.updatePostStatus(principal.getUserId(), postId, request.status()));
@@ -62,7 +63,7 @@ public class AdminController {
     @PatchMapping("/reports/{reportId}/status")
     public ResponseEntity<AdminReportResponse> updateReportStatus(
             @PathVariable String reportId,
-            @RequestBody AdminStatusRequest request,
+            @Valid @RequestBody AdminStatusRequest request,
             @AuthenticationPrincipal CustomJwtPrincipal principal
     ) {
         return ResponseEntity.ok(adminService.updateReportStatus(principal.getUserId(), reportId, request.status()));

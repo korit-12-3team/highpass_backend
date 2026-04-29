@@ -1,6 +1,9 @@
 package com.example.highpass_backend.service.calendar;
 
+import com.example.highpass_backend.dto.calendar.CalendarRequest;
 import com.example.highpass_backend.dto.calendar.CalendarResponse;
+import com.example.highpass_backend.eception.BusinessException;
+import com.example.highpass_backend.eception.ErrorCode;
 import com.example.highpass_backend.entity.calendar.Calendar;
 import com.example.highpass_backend.entity.calendar.CalendarAlarmCheck;
 import com.example.highpass_backend.entity.user.User;
@@ -24,17 +27,21 @@ public class CalendarService {
     private final CalendarAlarmCheckRepository alarmCheckRepository;
 
     @Transactional
-    public CalendarResponse createCalendar(Long userId, Calendar request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+    public CalendarResponse createCalendar(Long userId, CalendarRequest request) {
+        User user = getUser(userId);
 
-        request.setUser(user);
-        if (request.getKind() == null || request.getKind().isBlank()) {
-            request.setKind("general");
-        }
+        Calendar calendar = Calendar.builder()
+                .user(user)
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate() != null ? request.getEndDate() : request.getStartDate())
+                .startTime(request.getStartTime())
+                .endTime(request.getEndTime())
+                .title(request.getTitle())
+                .content(request.getContent())
+                .kind(resolveKind(request.getKind()))
+                .build();
 
-        Calendar saved = calendarRepository.save(request);
-        return CalendarResponse.from(saved);
+        return CalendarResponse.from(calendarRepository.save(calendar));
     }
 
     @Transactional(readOnly = true)
@@ -45,9 +52,9 @@ public class CalendarService {
     }
 
     @Transactional
-    public CalendarResponse updateCalendar(Long calendarId, Calendar updateParam) {
-        Calendar event = calendarRepository.findById(calendarId)
-                .orElseThrow(() -> new RuntimeException("해당 일정이 없습니다."));
+    public CalendarResponse updateCalendar(Long currentUserId, Long calendarId, CalendarRequest updateParam) {
+        Calendar event = getCalendar(calendarId);
+        assertOwner(currentUserId, event);
 
         event.setTitle(updateParam.getTitle());
         event.setContent(updateParam.getContent());
@@ -55,39 +62,35 @@ public class CalendarService {
         event.setEndDate(updateParam.getEndDate() != null ? updateParam.getEndDate() : updateParam.getStartDate());
         event.setStartTime(updateParam.getStartTime());
         event.setEndTime(updateParam.getEndTime());
-        event.setKind(updateParam.getKind() == null || updateParam.getKind().isBlank() ? "general" : updateParam.getKind());
+        event.setKind(resolveKind(updateParam.getKind()));
 
         return CalendarResponse.from(event);
     }
 
     @Transactional
-    public void deleteCalendar(Long calendarId) {
-        calendarRepository.deleteById(calendarId);
+    public void deleteCalendar(Long currentUserId, Long calendarId) {
+        Calendar event = getCalendar(calendarId);
+        assertOwner(currentUserId, event);
+        calendarRepository.delete(event);
     }
 
-    //오늘 알림용 일정 목록 조회 (다시보지않음 누를시 빈리스트로 출력)
     @Transactional(readOnly = true)
     public List<CalendarResponse> getTodayAlarms(Long userId) {
         LocalDate today = LocalDate.now();
 
-        // 1. 오늘 이미 알림을 확인했는지 확인
         Optional<CalendarAlarmCheck> alarmCheck = alarmCheckRepository.findByUserId(userId);
         if (alarmCheck.isPresent() && alarmCheck.get().getLastCheckedDate().equals(today)) {
-            return List.of(); // 오늘 이미 확인했다면 아무것도 보내지 않음
+            return List.of();
         }
 
-        // 2. 오늘 시작하거나 오늘 종료되는 일정 조회
         return calendarRepository.findTodayNotifications(userId, today).stream()
                 .map(CalendarResponse::from)
                 .toList();
     }
 
-    // 알림 확인 완료 처리 (오늘 날짜로 도장 찍기)
     @Transactional
     public void markAlarmAsChecked(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
-
+        User user = getUser(userId);
         LocalDate today = LocalDate.now();
 
         CalendarAlarmCheck alarmCheck = alarmCheckRepository.findByUserId(userId)
@@ -97,5 +100,25 @@ public class CalendarService {
 
         alarmCheck.updateDate(today);
         alarmCheckRepository.save(alarmCheck);
+    }
+
+    private User getUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "인증된 사용자를 찾을 수 없습니다."));
+    }
+
+    private Calendar getCalendar(Long calendarId) {
+        return calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "존재하지 않는 일정입니다."));
+    }
+
+    private void assertOwner(Long currentUserId, Calendar event) {
+        if (!event.getUser().getId().equals(currentUserId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "일정에 접근할 권한이 없습니다.");
+        }
+    }
+
+    private String resolveKind(String kind) {
+        return kind == null || kind.isBlank() ? "general" : kind;
     }
 }

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -48,15 +49,23 @@ public class SecurityConfig {
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/login/", "/oauth2/**").permitAll()
+                        .requestMatchers("/ws-stomp/**", "/rooms/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/oauth2/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/reports/inquiries").permitAll()
                         .requestMatchers("/api/users/me", "/api/users/me/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/boards", "/api/boards/**",
+                                "/api/study", "/api/study/**",
+                                "/api/comments/**",
+                                "/api/certificates/schedules",
+                                "/api/certificates/data-industry-schedules",
+                                "/api/calendar/holidays/**",
+                                "/api/users/**"
+                        ).permitAll()
+                        .requestMatchers("/api/admin/**").authenticated()
                         .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/chat/**").authenticated()
-                        .requestMatchers(
-                                "/", "/login/", "/oauth2/**", "/api/auth/**", "/api/oauth2/**",
-                                "/api/boards/**", "/api/calendar/**", "/api/study/**", "/api/likes/**",
-                                "/api/comments/**", "/api/chat/**", "/api/todos/**", "/api/user-certificates/**",
-                                "/api/certificates/**", "/api/users/**", "/ws-stomp/**", "/rooms/**", "/api/reports/inquiries"
-                        ).permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()
                 )

@@ -5,6 +5,7 @@ import com.example.highpass_backend.dto.report.CreateSupportInquiryRequest;
 import com.example.highpass_backend.dto.report.ReportResponse;
 import com.example.highpass_backend.security.CustomJwtPrincipal;
 import com.example.highpass_backend.service.report.ReportService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class ReportController {
 
     @PostMapping
     public ResponseEntity<ReportResponse> createReport(
-            @RequestBody CreateReportRequest request,
+            @Valid @RequestBody CreateReportRequest request,
             @AuthenticationPrincipal CustomJwtPrincipal principal
     ) {
         ReportResponse response = reportService.createReport(principal.getUserId(), request);
@@ -29,7 +30,7 @@ public class ReportController {
 
     @PostMapping("/inquiries")
     public ResponseEntity<ReportResponse> createSupportInquiry(
-            @RequestBody CreateSupportInquiryRequest request
+            @Valid @RequestBody CreateSupportInquiryRequest request
     ) {
         ReportResponse response = reportService.createSupportInquiry(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);

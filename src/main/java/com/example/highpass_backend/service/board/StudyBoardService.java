@@ -3,17 +3,16 @@ package com.example.highpass_backend.service.board;
 import com.example.highpass_backend.dto.board.StudyBoardCreateRequest;
 import com.example.highpass_backend.dto.board.StudyBoardDetailResponse;
 import com.example.highpass_backend.dto.board.StudyBoardListResponse;
+import com.example.highpass_backend.eception.BusinessException;
+import com.example.highpass_backend.eception.ErrorCode;
 import com.example.highpass_backend.entity.board.BoardLike;
 import com.example.highpass_backend.entity.board.Comment;
 import com.example.highpass_backend.entity.board.StudyBoard;
 import com.example.highpass_backend.entity.chat.ChatParticipant;
 import com.example.highpass_backend.entity.chat.ChatRoom;
 import com.example.highpass_backend.entity.user.User;
-import com.example.highpass_backend.repository.board.BoardLikeRepository;
-import com.example.highpass_backend.repository.board.CommentRepository;
 import com.example.highpass_backend.repository.board.StudyBoardRepository;
 import com.example.highpass_backend.repository.chat.ChatRoomRepository;
-import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,14 +24,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class StudyBoardService {
     private final StudyBoardRepository studyBoardRepository;
-    private final CommentRepository commentRepository;
-    private final BoardLikeRepository boardLikeRepository;
-    private final UserRepository userRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final BoardSupportService boardSupportService;
 
     @Transactional
     public StudyBoardDetailResponse createStudy(Long userId, StudyBoardCreateRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+        User user = boardSupportService.getAuthenticatedUser(userId);
 
         StudyBoard study = StudyBoard.builder()
                 .user(user)
@@ -48,7 +45,7 @@ public class StudyBoardService {
         StudyBoard savedStudy = studyBoardRepository.save(study);
 
         ChatRoom savedChatRoom = null;
-        if(request.createChatRoom()) {
+        if (request.createChatRoom()) {
             ChatRoom chatRoom = ChatRoom.builder()
                     .name(request.title())
                     .ownerId(userId)
@@ -59,7 +56,6 @@ public class StudyBoardService {
             chatRoom.addParticipant(user, true);
             savedStudy.setChatRoom(savedChatRoom);
         }
-
 
         return StudyBoardDetailResponse.from(
                 savedStudy,
@@ -73,21 +69,17 @@ public class StudyBoardService {
 
     @Transactional(readOnly = true)
     public List<StudyBoardListResponse> getStudyList(Long currentUserId) {
-        return studyBoardRepository.findAll().stream()
-                .filter(study -> study.getStatus() == null || study.getStatus() == StudyBoard.Status.VISIBLE)
-                .map(study -> StudyBoardListResponse.from(study, isLikedByUser(currentUserId, study.getId())))
+        return studyBoardRepository.findByStatusOrStatusIsNullOrderByCreatedAtDesc(StudyBoard.Status.VISIBLE).stream()
+                .map(study -> StudyBoardListResponse.from(
+                        study,
+                        boardSupportService.isLikedByUser(currentUserId, BoardLike.TargetType.STUDY, study.getId())
+                ))
                 .toList();
     }
 
     @Transactional
     public StudyBoardDetailResponse getStudy(Long studyId, Long currentUserId) {
-        StudyBoard study = studyBoardRepository.findById(studyId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
-
-        if (study.getStatus() != null && study.getStatus() != StudyBoard.Status.VISIBLE) {
-            throw new RuntimeException("Hidden or deleted study board.");
-        }
-
+        StudyBoard study = getVisibleStudy(studyId);
         study.incrementViewCount();
 
         ChatRoom room = study.getChatRoom();
@@ -108,16 +100,16 @@ public class StudyBoardService {
                         .findFirst();
 
                 if (participantOpt.isPresent()) {
-                    ChatParticipant p = participantOpt.get();
-                    participantStatus = p.getStatus().name();
-                    isParticipant = (p.getStatus() == ChatParticipant.ParticipantStatus.JOINED);
+                    ChatParticipant participant = participantOpt.get();
+                    participantStatus = participant.getStatus().name();
+                    isParticipant = participant.getStatus() == ChatParticipant.ParticipantStatus.JOINED;
                 }
             }
         }
 
         return StudyBoardDetailResponse.from(
                 study,
-                isLikedByUser(currentUserId, study.getId()),
+                boardSupportService.isLikedByUser(currentUserId, BoardLike.TargetType.STUDY, study.getId()),
                 chatRoomId,
                 currentParticipants,
                 isParticipant,
@@ -126,19 +118,18 @@ public class StudyBoardService {
     }
 
     @Transactional
-    public void deleteStudy(Long studyId) {
-        StudyBoard study = studyBoardRepository.findById(studyId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
+    public void deleteStudy(Long currentUserId, Long studyId) {
+        StudyBoard study = getStudyBoard(studyId);
+        boardSupportService.assertCanModify(currentUserId, study.getUser().getId());
 
-        commentRepository.deleteByTargetTypeAndTargetId(Comment.TargetType.STUDY, studyId);
-        boardLikeRepository.deleteByTargetTypeAndTargetId(BoardLike.TargetType.STUDY, studyId);
+        boardSupportService.deleteBoardInteractions(Comment.TargetType.STUDY, BoardLike.TargetType.STUDY, studyId);
         studyBoardRepository.delete(study);
     }
 
     @Transactional
-    public StudyBoardDetailResponse updateStudy(Long studyId, StudyBoardCreateRequest request) {
-        StudyBoard study = studyBoardRepository.findById(studyId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 게시물입니다."));
+    public StudyBoardDetailResponse updateStudy(Long currentUserId, Long studyId, StudyBoardCreateRequest request) {
+        StudyBoard study = getStudyBoard(studyId);
+        boardSupportService.assertCanModify(currentUserId, study.getUser().getId());
 
         study.updateStudy(
                 request.title(),
@@ -154,15 +145,24 @@ public class StudyBoardService {
         return StudyBoardDetailResponse.from(study);
     }
 
-    private boolean isLikedByUser(Long currentUserId, Long studyId) {
-        if (currentUserId == null) {
-            return false;
+    private StudyBoard getVisibleStudy(Long studyId) {
+        StudyBoard study = getStudyBoard(studyId);
+        if (!isVisible(study)) {
+            throw notFound();
         }
+        return study;
+    }
 
-        return boardLikeRepository.existsByUserIdAndTargetTypeAndTargetId(
-                currentUserId,
-                BoardLike.TargetType.STUDY,
-                studyId
-        );
+    private StudyBoard getStudyBoard(Long studyId) {
+        return studyBoardRepository.findById(studyId)
+                .orElseThrow(this::notFound);
+    }
+
+    private boolean isVisible(StudyBoard study) {
+        return study.getStatus() == null || study.getStatus() == StudyBoard.Status.VISIBLE;
+    }
+
+    private BusinessException notFound() {
+        return new BusinessException(ErrorCode.NOT_FOUND, "존재하지 않는 스터디 게시글입니다.");
     }
 }

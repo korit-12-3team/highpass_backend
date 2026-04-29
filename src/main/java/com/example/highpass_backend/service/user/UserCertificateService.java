@@ -2,9 +2,11 @@ package com.example.highpass_backend.service.user;
 
 import com.example.highpass_backend.dto.user.UserCertificateRequest;
 import com.example.highpass_backend.dto.user.UserCertificateResponse;
+import com.example.highpass_backend.eception.BusinessException;
+import com.example.highpass_backend.eception.ErrorCode;
 import com.example.highpass_backend.entity.certificate.NationalCertificate;
-import com.example.highpass_backend.entity.user.UserCertificate;
 import com.example.highpass_backend.entity.user.User;
+import com.example.highpass_backend.entity.user.UserCertificate;
 import com.example.highpass_backend.repository.certificate.NationalCertificateRepository;
 import com.example.highpass_backend.repository.user.UserCertificateRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
@@ -24,15 +26,11 @@ public class UserCertificateService {
     private final UserCertificateRepository userCertificateRepository;
 
     public UserCertificateResponse addUserCertificate(Long userId, UserCertificateRequest request) {
-        if (request.getCertificateScheduleId() == null) {
-            throw new IllegalArgumentException("자격증 일정 ID가 필요합니다.");
-        }
-
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다. ID: " + userId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "인증된 사용자를 찾을 수 없습니다."));
 
         NationalCertificate certificate = nationalCertificateRepository.findById(request.getCertificateScheduleId())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 자격증 일정입니다. ID: " + request.getCertificateScheduleId()));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "존재하지 않는 자격증 일정입니다."));
 
         UserCertificate userCertificate = userCertificateRepository
                 .findByUserIdAndNationalCertificate_Id(userId, certificate.getId())
@@ -53,11 +51,13 @@ public class UserCertificateService {
                 .toList();
     }
 
-    public void deleteUserCertificate(Long userCertificateId) {
-        if (!userCertificateRepository.existsById(userCertificateId)) {
-            throw new RuntimeException("존재하지 않는 저장 자격증입니다. ID: " + userCertificateId);
+    public void deleteUserCertificate(Long currentUserId, Long userCertificateId) {
+        UserCertificate userCertificate = userCertificateRepository.findById(userCertificateId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "존재하지 않는 저장 자격증입니다."));
+        if (!userCertificate.getUser().getId().equals(currentUserId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "저장 자격증에 접근할 권한이 없습니다.");
         }
-        userCertificateRepository.deleteById(userCertificateId);
+        userCertificateRepository.delete(userCertificate);
     }
 
     private UserCertificateResponse toResponse(UserCertificate userCertificate) {

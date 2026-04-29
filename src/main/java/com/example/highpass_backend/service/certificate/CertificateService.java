@@ -89,7 +89,7 @@ public class CertificateService {
 
     @Transactional(readOnly = true)
     public List<CertificateScheduleResponse> getSchedules() {
-        return nationalCertificateRepository.findAll().stream()
+        return nationalCertificateRepository.findAllByOrderByYearAscCertificateNameAscRoundAsc().stream()
                 .map(entity -> CertificateScheduleResponse.builder()
                         .id(entity.getId())
                         .certificateName(entity.getCertificateName())

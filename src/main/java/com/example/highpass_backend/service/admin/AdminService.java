@@ -5,6 +5,8 @@ import com.example.highpass_backend.dto.admin.AdminReportChatMessageResponse;
 import com.example.highpass_backend.dto.admin.AdminReportResponse;
 import com.example.highpass_backend.dto.admin.AdminUserResponse;
 import com.example.highpass_backend.dto.user.UserDisplayName;
+import com.example.highpass_backend.eception.BusinessException;
+import com.example.highpass_backend.eception.ErrorCode;
 import com.example.highpass_backend.entity.auth.OAuth2Account;
 import com.example.highpass_backend.entity.board.Comment;
 import com.example.highpass_backend.entity.board.FreeBoard;
@@ -24,15 +26,13 @@ import com.example.highpass_backend.repository.report.ReportRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import com.example.highpass_backend.service.user.UserPresenceService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -52,10 +52,8 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<AdminUserResponse> getUsers(Long adminUserId) {
         requireAdmin(adminUserId);
-        return userRepository.findAll().stream()
-                .filter(user -> user.getRole() != User.Role.ADMIN)
+        return userRepository.findByRoleNotOrderByCreatedAtDesc(User.Role.ADMIN).stream()
                 .map(this::toAdminUserResponse)
-                .sorted(Comparator.comparing(AdminUserResponse::createdAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                 .toList();
     }
 
@@ -63,7 +61,7 @@ public class AdminService {
     public AdminUserResponse updateUserStatus(Long adminUserId, Long userId, String status) {
         requireAdmin(adminUserId);
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
         user.updateStatus(parseUserStatus(status));
 
@@ -73,12 +71,10 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<AdminPostResponse> getPosts(Long adminUserId) {
         requireAdmin(adminUserId);
-        List<AdminPostResponse> posts = new ArrayList<>();
-
-        freeBoardRepository.findAll().forEach(board -> posts.add(toFreePostResponse(board)));
-        studyBoardRepository.findAll().forEach(study -> posts.add(toStudyPostResponse(study)));
-
-        return posts.stream()
+        return Stream.concat(
+                        freeBoardRepository.findAllByOrderByCreatedAtDesc().stream().map(this::toFreePostResponse),
+                        studyBoardRepository.findAllByOrderByCreatedAtDesc().stream().map(this::toStudyPostResponse)
+                )
                 .sorted(Comparator.comparing(AdminPostResponse::createdAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                 .toList();
     }
@@ -88,13 +84,13 @@ public class AdminService {
         requireAdmin(adminUserId);
         String[] parts = postId.split("-", 2);
         if (parts.length == 2 && "study".equalsIgnoreCase(parts[0])) {
-            return updateStudyStatus(Long.parseLong(parts[1]), status);
+            return updateStudyStatus(parseLong(parts[1], "게시글 ID가 올바르지 않습니다."), status);
         }
         if (parts.length == 2 && "free".equalsIgnoreCase(parts[0])) {
-            return updateFreeStatus(Long.parseLong(parts[1]), status);
+            return updateFreeStatus(parseLong(parts[1], "게시글 ID가 올바르지 않습니다."), status);
         }
 
-        Long numericId = Long.parseLong(postId);
+        Long numericId = parseLong(postId, "게시글 ID가 올바르지 않습니다.");
         return freeBoardRepository.findById(numericId)
                 .map(board -> {
                     board.updateStatus(parseFreeStatus(status));
@@ -106,8 +102,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<AdminReportResponse> getReports(Long adminUserId) {
         requireAdmin(adminUserId);
-        return reportRepository.findAll().stream()
-                .sorted(Comparator.comparing(Report::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+        return reportRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::toAdminReportResponse)
                 .toList();
     }
@@ -115,31 +110,31 @@ public class AdminService {
     @Transactional
     public AdminReportResponse updateReportStatus(Long adminUserId, String reportId, String status) {
         requireAdmin(adminUserId);
-        Report report = reportRepository.findById(Long.parseLong(reportId))
-                .orElseThrow(() -> new IllegalArgumentException("Report not found."));
+        Report report = reportRepository.findById(parseLong(reportId, "신고 ID가 올바르지 않습니다."))
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "신고를 찾을 수 없습니다."));
         report.updateStatus(parseReportStatus(status));
         return toAdminReportResponse(report);
     }
 
     private void requireAdmin(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
         if (user.getRole() != User.Role.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin permission is required.");
+            throw new BusinessException(ErrorCode.FORBIDDEN, "관리자 권한이 필요합니다.");
         }
     }
 
     private AdminPostResponse updateFreeStatus(Long postId, String status) {
         FreeBoard board = freeBoardRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("Free board not found."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "자유 게시글을 찾을 수 없습니다."));
         board.updateStatus(parseFreeStatus(status));
         return toFreePostResponse(board);
     }
 
     private AdminPostResponse updateStudyStatus(Long postId, String status) {
         StudyBoard study = studyBoardRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("Study board not found."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "스터디 게시글을 찾을 수 없습니다."));
         study.updateStatus(parseStudyStatus(status));
         return toStudyPostResponse(study);
     }
@@ -179,17 +174,11 @@ public class AdminService {
     }
 
     private int countPosts(Long userId) {
-        return freeBoardRepository.findByUserId(userId).size()
-                + studyBoardRepository.findAll().stream()
-                .filter(study -> study.getUser().getId().equals(userId))
-                .toList()
-                .size();
+        return Math.toIntExact(freeBoardRepository.countByUserId(userId) + studyBoardRepository.countByUserId(userId));
     }
 
     private int countUserComments(Long userId) {
-        return (int) commentRepository.findAll().stream()
-                .filter(comment -> comment.getUser().getId().equals(userId))
-                .count();
+        return Math.toIntExact(commentRepository.countByUserId(userId));
     }
 
     private int countReportsForUser(Long userId) {
@@ -220,7 +209,7 @@ public class AdminService {
             case "active" -> User.Status.ACTIVE;
             case "suspended" -> User.Status.SUSPENDED;
             case "deleted" -> User.Status.DELETED;
-            default -> throw new IllegalArgumentException("Unsupported user status: " + status);
+            default -> throw new BusinessException(ErrorCode.INVALID_INPUT, "지원하지 않는 사용자 상태입니다.");
         };
     }
 
@@ -229,7 +218,7 @@ public class AdminService {
             case "visible" -> FreeBoard.Status.VISIBLE;
             case "hidden" -> FreeBoard.Status.HIDDEN;
             case "deleted" -> FreeBoard.Status.DELETED;
-            default -> throw new IllegalArgumentException("Unsupported post status: " + status);
+            default -> throw new BusinessException(ErrorCode.INVALID_INPUT, "지원하지 않는 게시글 상태입니다.");
         };
     }
 
@@ -238,7 +227,7 @@ public class AdminService {
             case "visible" -> StudyBoard.Status.VISIBLE;
             case "hidden" -> StudyBoard.Status.HIDDEN;
             case "deleted" -> StudyBoard.Status.DELETED;
-            default -> throw new IllegalArgumentException("Unsupported post status: " + status);
+            default -> throw new BusinessException(ErrorCode.INVALID_INPUT, "지원하지 않는 게시글 상태입니다.");
         };
     }
 
@@ -247,7 +236,7 @@ public class AdminService {
             case "pending" -> Report.Status.PENDING;
             case "resolved" -> Report.Status.RESOLVED;
             case "dismissed" -> Report.Status.DISMISSED;
-            default -> throw new IllegalArgumentException("Unsupported report status: " + status);
+            default -> throw new BusinessException(ErrorCode.INVALID_INPUT, "지원하지 않는 신고 상태입니다.");
         };
     }
 
@@ -277,7 +266,7 @@ public class AdminService {
     private AdminReportResponse.UserDetail buildUserDetail(Report report) {
         if (report.getTargetType() != Report.TargetType.USER) return null;
 
-        return userRepository.findById(Long.parseLong(report.getTargetId()))
+        return userRepository.findById(parseLong(report.getTargetId(), "신고 대상 사용자 ID가 올바르지 않습니다."))
                 .map(user -> new AdminReportResponse.UserDetail(
                         String.valueOf(user.getId()),
                         UserDisplayName.nickname(user),
@@ -292,7 +281,7 @@ public class AdminService {
         String[] parts = safe(report.getTargetId()).split("-", 2);
         if (parts.length != 2) return null;
 
-        Long postId = Long.parseLong(parts[1]);
+        Long postId = parseLong(parts[1], "신고 대상 게시글 ID가 올바르지 않습니다.");
         if ("free".equalsIgnoreCase(parts[0])) {
             return freeBoardRepository.findById(postId)
                     .map(board -> new AdminReportResponse.PostDetail(
@@ -319,7 +308,7 @@ public class AdminService {
     private AdminReportResponse.CommentDetail buildCommentDetail(Report report) {
         if (report.getTargetType() != Report.TargetType.COMMENT) return null;
 
-        return commentRepository.findById(Long.parseLong(report.getTargetId()))
+        return commentRepository.findById(parseLong(report.getTargetId(), "신고 대상 댓글 ID가 올바르지 않습니다."))
                 .map(comment -> new AdminReportResponse.CommentDetail(
                         String.valueOf(comment.getId()),
                         safe(comment.getContent()),
@@ -334,7 +323,7 @@ public class AdminService {
     private AdminReportResponse.ChatDetail buildChatDetail(Report report) {
         if (report.getTargetType() != Report.TargetType.CHAT) return null;
 
-        Long roomId = Long.parseLong(report.getTargetId());
+        Long roomId = parseLong(report.getTargetId(), "신고 대상 채팅방 ID가 올바르지 않습니다.");
         return chatRoomRepository.findById(roomId)
                 .map(room -> {
                     User reporter = report.getReporter();
@@ -400,5 +389,13 @@ public class AdminService {
 
     private String normalizeStatus(String status) {
         return status == null ? "" : status.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private Long parseLong(String value, String message) {
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException exception) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, message);
+        }
     }
 }

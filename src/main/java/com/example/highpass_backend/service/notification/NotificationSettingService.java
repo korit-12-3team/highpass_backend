@@ -1,6 +1,8 @@
 package com.example.highpass_backend.service.notification;
 
 import com.example.highpass_backend.dto.notification.NotificationSettingRequest;
+import com.example.highpass_backend.eception.BusinessException;
+import com.example.highpass_backend.eception.ErrorCode;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,21 +17,13 @@ public class NotificationSettingService {
 
     @Transactional
     public void updateNotificationSetting(Long userId, NotificationSettingRequest request) {
-
-
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "인증된 사용자를 찾을 수 없습니다."));
 
         switch (request.getType()) {
-            case COMMENT:
-                user.toggleCommentNoti(request.isOn());
-                break;
-            case LIKE:
-                user.toggleLikeNoti(request.isOn());
-                break;
-            default:
-                throw new RuntimeException("알 수 없는 알림 종류입니다.");
+            case COMMENT -> user.toggleCommentNoti(request.isOn());
+            case LIKE -> user.toggleLikeNoti(request.isOn());
+            default -> throw new BusinessException(ErrorCode.INVALID_INPUT, "알 수 없는 알림 종류입니다.");
         }
-
     }
 }

@@ -4,6 +4,8 @@ import com.example.highpass_backend.config.CookieUtils;
 import com.example.highpass_backend.dto.auth.LoginResponse;
 import com.example.highpass_backend.dto.auth.UserLoginRequest;
 import com.example.highpass_backend.dto.auth.UserSignupRequest;
+import com.example.highpass_backend.eception.BusinessException;
+import com.example.highpass_backend.eception.ErrorCode;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.user.UserRepository;
 import com.example.highpass_backend.security.JwtProperties;
@@ -36,13 +38,13 @@ public class AuthServiceImpl implements AuthService {
         String sanitizedNickname = NicknameNormalizer.sanitizeForStorage(request.getNickname());
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw new BusinessException(ErrorCode.DUPLICATE_RESOURCE, "이미 사용 중인 이메일입니다.");
         }
         if (sanitizedNickname == null || sanitizedNickname.isBlank()) {
-            throw new IllegalArgumentException("닉네임을 입력해 주세요.");
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "닉네임을 입력해 주세요.");
         }
         if (userRepository.existsByNickname(sanitizedNickname)) {
-            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+            throw new BusinessException(ErrorCode.DUPLICATE_RESOURCE, "이미 사용 중인 닉네임입니다.");
         }
 
         User user = userRepository.save(
@@ -65,22 +67,22 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(UserLoginRequest request, HttpServletResponse response) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."));
 
         if (user.getPassword() == null) {
-            throw new IllegalArgumentException("소셜 로그인 계정입니다. 구글 또는 카카오 로그인을 이용해 주세요.");
+            throw new BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION, "소셜 로그인 계정입니다. 구글 또는 카카오 로그인을 이용해 주세요.");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다.");
         }
 
         if (user.getStatus() == User.Status.SUSPENDED) {
-            throw new IllegalArgumentException("정지된 계정입니다. 관리자에게 문의해 주세요.");
+            throw new BusinessException(ErrorCode.FORBIDDEN, "정지된 계정입니다. 관리자에게 문의해 주세요.");
         }
 
         if (user.getStatus() == User.Status.DELETED) {
-            throw new IllegalArgumentException("탈퇴 처리된 계정입니다.");
+            throw new BusinessException(ErrorCode.FORBIDDEN, "탈퇴 처리된 계정입니다.");
         }
 
         issueAuthCookies(user, response);

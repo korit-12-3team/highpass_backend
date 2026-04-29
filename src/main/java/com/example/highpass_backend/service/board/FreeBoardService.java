@@ -2,14 +2,13 @@ package com.example.highpass_backend.service.board;
 
 import com.example.highpass_backend.dto.board.FreeBoardRequest;
 import com.example.highpass_backend.dto.board.FreeBoardResponse;
+import com.example.highpass_backend.eception.BusinessException;
+import com.example.highpass_backend.eception.ErrorCode;
 import com.example.highpass_backend.entity.board.BoardLike;
 import com.example.highpass_backend.entity.board.Comment;
 import com.example.highpass_backend.entity.board.FreeBoard;
 import com.example.highpass_backend.entity.user.User;
-import com.example.highpass_backend.repository.board.BoardLikeRepository;
-import com.example.highpass_backend.repository.board.CommentRepository;
 import com.example.highpass_backend.repository.board.FreeBoardRepository;
-import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,13 +19,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FreeBoardService {
     private final FreeBoardRepository freeBoardRepository;
-    private final CommentRepository commentRepository;
-    private final BoardLikeRepository boardLikeRepository;
-    private final UserRepository userRepository;
+    private final BoardSupportService boardSupportService;
 
     @Transactional
     public FreeBoardResponse createFreeBoard(Long userId, FreeBoardRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+        User user = boardSupportService.getAuthenticatedUser(userId);
 
         FreeBoard freeBoard = FreeBoard.builder()
                 .user(user)
@@ -34,62 +31,65 @@ public class FreeBoardService {
                 .content(request.content())
                 .build();
 
-        FreeBoard savedFreeBoard = freeBoardRepository.save(freeBoard);
-
-        return FreeBoardResponse.from(savedFreeBoard);
+        return FreeBoardResponse.from(freeBoardRepository.save(freeBoard));
     }
 
     @Transactional(readOnly = true)
     public List<FreeBoardResponse> getFreeBoardList(Long currentUserId) {
-        return freeBoardRepository.findAll().stream()
-                .filter(board -> board.getStatus() == null || board.getStatus() == FreeBoard.Status.VISIBLE)
-                .map(board -> FreeBoardResponse.from(board, isLikedByUser(currentUserId, board.getId())))
+        return freeBoardRepository.findByStatusOrStatusIsNullOrderByCreatedAtDesc(FreeBoard.Status.VISIBLE).stream()
+                .map(board -> FreeBoardResponse.from(
+                        board,
+                        boardSupportService.isLikedByUser(currentUserId, BoardLike.TargetType.FREE, board.getId())
+                ))
                 .toList();
     }
 
     @Transactional
     public FreeBoardResponse getFreeBoard(Long freeBoardId, Long currentUserId) {
-        FreeBoard freeBoard = freeBoardRepository.findById(freeBoardId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 게시글입니다."));
-
-        if (freeBoard.getStatus() != null && freeBoard.getStatus() != FreeBoard.Status.VISIBLE) {
-            throw new RuntimeException("Hidden or deleted board.");
-        }
-
+        FreeBoard freeBoard = getVisibleBoard(freeBoardId);
         freeBoard.increaseViewCount();
-
-        return FreeBoardResponse.from(freeBoard, isLikedByUser(currentUserId, freeBoard.getId()));
+        return FreeBoardResponse.from(
+                freeBoard,
+                boardSupportService.isLikedByUser(currentUserId, BoardLike.TargetType.FREE, freeBoard.getId())
+        );
     }
 
     @Transactional
-    public void deleteFreeBoard(Long freeBoardId) {
-        FreeBoard freeBoard = freeBoardRepository.findById(freeBoardId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 게시글입니다."));
+    public void deleteFreeBoard(Long currentUserId, Long freeBoardId) {
+        FreeBoard freeBoard = getBoard(freeBoardId);
+        boardSupportService.assertCanModify(currentUserId, freeBoard.getUser().getId());
 
-        commentRepository.deleteByTargetTypeAndTargetId(Comment.TargetType.FREE, freeBoardId);
-        boardLikeRepository.deleteByTargetTypeAndTargetId(BoardLike.TargetType.FREE, freeBoardId);
+        boardSupportService.deleteBoardInteractions(Comment.TargetType.FREE, BoardLike.TargetType.FREE, freeBoardId);
         freeBoardRepository.delete(freeBoard);
     }
 
     @Transactional
-    public FreeBoardResponse updateFreeBoard(Long freeBoardId, FreeBoardRequest request) {
-        FreeBoard freeBoard = freeBoardRepository.findById(freeBoardId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 게시글입니다."));
+    public FreeBoardResponse updateFreeBoard(Long currentUserId, Long freeBoardId, FreeBoardRequest request) {
+        FreeBoard freeBoard = getBoard(freeBoardId);
+        boardSupportService.assertCanModify(currentUserId, freeBoard.getUser().getId());
 
         freeBoard.updateBoard(request.title(), request.content());
-
         return FreeBoardResponse.from(freeBoard);
     }
 
-    private boolean isLikedByUser(Long currentUserId, Long boardId) {
-        if (currentUserId == null) {
-            return false;
+    private FreeBoard getVisibleBoard(Long freeBoardId) {
+        FreeBoard freeBoard = getBoard(freeBoardId);
+        if (!isVisible(freeBoard)) {
+            throw notFound();
         }
+        return freeBoard;
+    }
 
-        return boardLikeRepository.existsByUserIdAndTargetTypeAndTargetId(
-                currentUserId,
-                BoardLike.TargetType.FREE,
-                boardId
-        );
+    private FreeBoard getBoard(Long freeBoardId) {
+        return freeBoardRepository.findById(freeBoardId)
+                .orElseThrow(this::notFound);
+    }
+
+    private boolean isVisible(FreeBoard freeBoard) {
+        return freeBoard.getStatus() == null || freeBoard.getStatus() == FreeBoard.Status.VISIBLE;
+    }
+
+    private BusinessException notFound() {
+        return new BusinessException(ErrorCode.NOT_FOUND, "존재하지 않는 게시글입니다.");
     }
 }

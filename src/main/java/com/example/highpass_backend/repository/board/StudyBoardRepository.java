@@ -9,9 +9,15 @@ import java.util.Optional;
 
 public interface StudyBoardRepository extends JpaRepository<StudyBoard, Long> {
 
-    List<StudyBoardRepository> findByUser(User user);
+    List<StudyBoard> findByUser(User user);
 
-    List<StudyBoardRepository> findByUserId(Long userId);
+    List<StudyBoard> findByUserId(Long userId);
+
+    long countByUserId(Long userId);
+
+    List<StudyBoard> findByStatusOrStatusIsNullOrderByCreatedAtDesc(StudyBoard.Status status);
+
+    List<StudyBoard> findAllByOrderByCreatedAtDesc();
 
     Optional<StudyBoard> findByChatRoomId(Long chatRoomId);
 }

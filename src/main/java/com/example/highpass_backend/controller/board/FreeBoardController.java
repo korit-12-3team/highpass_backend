@@ -2,10 +2,13 @@ package com.example.highpass_backend.controller.board;
 
 import com.example.highpass_backend.dto.board.FreeBoardRequest;
 import com.example.highpass_backend.dto.board.FreeBoardResponse;
+import com.example.highpass_backend.security.CustomJwtPrincipal;
 import com.example.highpass_backend.service.board.FreeBoardService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,9 +19,12 @@ import java.util.List;
 public class FreeBoardController {
     private final FreeBoardService freeBoardService;
 
-    @PostMapping("/{userId}")
-    public ResponseEntity<FreeBoardResponse> addFreeBoard(@PathVariable Long userId, @RequestBody FreeBoardRequest request) {
-        FreeBoardResponse freeBoardResponse = freeBoardService.createFreeBoard(userId, request);
+    @PostMapping
+    public ResponseEntity<FreeBoardResponse> addFreeBoard(
+            @AuthenticationPrincipal CustomJwtPrincipal principal,
+            @Valid @RequestBody FreeBoardRequest request
+    ) {
+        FreeBoardResponse freeBoardResponse = freeBoardService.createFreeBoard(principal.getUserId(), request);
         return new ResponseEntity<>(freeBoardResponse, HttpStatus.CREATED);
     }
 
@@ -34,14 +40,21 @@ public class FreeBoardController {
     }
 
     @DeleteMapping("/{freeBoardId}")
-    public ResponseEntity<Void> deleteFreeBoard(@PathVariable Long freeBoardId) {
-        freeBoardService.deleteFreeBoard(freeBoardId);
+    public ResponseEntity<Void> deleteFreeBoard(
+            @PathVariable Long freeBoardId,
+            @AuthenticationPrincipal CustomJwtPrincipal principal
+    ) {
+        freeBoardService.deleteFreeBoard(principal.getUserId(), freeBoardId);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{freeBoardId}")
-    public ResponseEntity<FreeBoardResponse> updateBoard(@PathVariable Long freeBoardId, @RequestBody FreeBoardRequest request) {
-        FreeBoardResponse freeBoardResponse = freeBoardService.updateFreeBoard(freeBoardId, request);
+    public ResponseEntity<FreeBoardResponse> updateBoard(
+            @PathVariable Long freeBoardId,
+            @AuthenticationPrincipal CustomJwtPrincipal principal,
+            @Valid @RequestBody FreeBoardRequest request
+    ) {
+        FreeBoardResponse freeBoardResponse = freeBoardService.updateFreeBoard(principal.getUserId(), freeBoardId, request);
         return ResponseEntity.ok(freeBoardResponse);
     }
 }

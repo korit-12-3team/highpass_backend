@@ -5,6 +5,7 @@ import com.example.highpass_backend.dto.auth.UserLoginRequest;
 import com.example.highpass_backend.dto.auth.UserSignupRequest;
 import com.example.highpass_backend.service.auth.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<LoginResponse> signup(
-            @RequestBody UserSignupRequest request,
+            @Valid @RequestBody UserSignupRequest request,
             HttpServletResponse response
     ) {
         return ResponseEntity.ok(authService.signup(request, response));
@@ -26,7 +27,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @RequestBody UserLoginRequest request,
+            @Valid @RequestBody UserLoginRequest request,
             HttpServletResponse response
     ) {
         return ResponseEntity.ok(authService.login(request, response));
