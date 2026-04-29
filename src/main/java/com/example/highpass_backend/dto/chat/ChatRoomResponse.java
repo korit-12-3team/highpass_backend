@@ -20,7 +20,6 @@ public class ChatRoomResponse {
     private LocalDateTime lastMessageTime;
     private Long partnerId;
     private String partnerNickname;
-    private String roomNickname;
     private List<ChatMessageDto> messages;
     private List<ChatParticipantResponse> participants;
 
@@ -48,7 +47,6 @@ public class ChatRoomResponse {
 
         this.partnerId = partnerParticipation != null ? partnerParticipation.getUser().getId() : null;
         this.partnerNickname = partnerParticipation != null ? partnerParticipation.getUser().getNickname() : null;
-        this.roomNickname = myParticipation != null ? myParticipation.getRoomNickname() : null;
 
         LocalDateTime myLastReadAt = myParticipation != null ? myParticipation.getLastReadAt() : null;
         LocalDateTime joinedAt = myParticipation != null ? myParticipation.getJoinedAt() : null;
@@ -59,8 +57,7 @@ public class ChatRoomResponse {
         );
 
         this.name = entity.getType() == ChatRoom.ChatType.GROUP
-                ? entity.getName()
-                : firstNonBlank(this.roomNickname, this.partnerNickname, "대화상대없음");
+                ? entity.getName() :null;
 
         this.messages = new ArrayList<>();
 
@@ -110,12 +107,4 @@ public class ChatRoomResponse {
         this.lastMessageTime = entity.getCreatedAt();
     }
 
-    private String firstNonBlank(String... values) {
-        for (String value : values) {
-            if (value != null && !value.isBlank()) {
-                return value;
-            }
-        }
-        return null;
-    }
 }

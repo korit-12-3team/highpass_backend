@@ -34,20 +34,6 @@ public class StudyBoardService {
     public StudyBoardDetailResponse createStudy(Long userId, StudyBoardCreateRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
-        ChatRoom savedChatRoom = null;
-
-        if(request.createChatRoom()) {
-            ChatRoom chatRoom = ChatRoom.builder()
-                    .name(request.title() + " 채팅방")
-                    .ownerId(userId)
-                    .isApprovalRequired(true)
-                    .type(ChatRoom.ChatType.GROUP)
-                    .build();
-            savedChatRoom = chatRoomRepository.save(chatRoom);
-            chatRoom.addParticipant(user, true);
-        }
-
-
         StudyBoard study = StudyBoard.builder()
                 .user(user)
                 .title(request.title())
@@ -58,16 +44,27 @@ public class StudyBoardService {
                 .latitude(request.latitude())
                 .longitude(request.longitude())
                 .placeId(request.placeId())
-                .chatRoom(savedChatRoom)
                 .build();
-
         StudyBoard savedStudy = studyBoardRepository.save(study);
+
+        ChatRoom savedChatRoom = null;
+        if(request.createChatRoom()) {
+            ChatRoom chatRoom = ChatRoom.builder()
+                    .name(request.title())
+                    .ownerId(userId)
+                    .isApprovalRequired(true)
+                    .type(ChatRoom.ChatType.GROUP)
+                    .build();
+            savedChatRoom = chatRoomRepository.save(chatRoom);
+            chatRoom.addParticipant(user, true);
+            savedStudy.setChatRoom(savedChatRoom);
+        }
 
 
         return StudyBoardDetailResponse.from(
                 savedStudy,
                 false,
-                savedChatRoom != null ? savedChatRoom.getId() : null,  // chatRoomId
+                savedChatRoom != null ? savedChatRoom.getId() : null,
                 0,
                 true,
                 "JOINED"

@@ -33,10 +33,6 @@ public class ChatRoom {
     @BatchSize(size = 100)
     private List<ChatMessage> messages = new ArrayList<>();
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "study_board_id")
-    private StudyBoard studyBoard;
-
     @CreatedDate
     @Column(name = "created_at" , updatable = false)
     private LocalDateTime createdAt;
@@ -53,12 +49,11 @@ public class ChatRoom {
     private boolean isApprovalRequired;
 
     @Builder
-    public ChatRoom(String name, ChatType type, boolean isApprovalRequired, Long ownerId, StudyBoard studyBoard) {
+    public ChatRoom(String name, ChatType type, boolean isApprovalRequired, Long ownerId) {
         this.name = name;
         this.type = type;
         this.isApprovalRequired = isApprovalRequired;
         this.ownerId = ownerId;
-        this.studyBoard = studyBoard;
         this.participants = new ArrayList<>();
         this.messages = new ArrayList<>();
     }

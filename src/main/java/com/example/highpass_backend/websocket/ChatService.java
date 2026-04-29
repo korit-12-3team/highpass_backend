@@ -4,15 +4,20 @@ import com.example.highpass_backend.dto.chat.ChatMessageDto;
 import com.example.highpass_backend.dto.chat.ChatParticipantResponse;
 import com.example.highpass_backend.dto.chat.ChatRoomResponse;
 import com.example.highpass_backend.dto.chat.StudyChatJoinResponse;
+import com.example.highpass_backend.dto.notification.ChatNotificationDto;
+import com.example.highpass_backend.dto.notification.NotificationResponse;
 import com.example.highpass_backend.entity.board.StudyBoard;
 import com.example.highpass_backend.entity.chat.ChatMessage;
 import com.example.highpass_backend.entity.chat.ChatParticipant;
 import com.example.highpass_backend.entity.chat.ChatRoom;
+import com.example.highpass_backend.entity.notification.Notification;
+import com.example.highpass_backend.entity.notification.NotificationType;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.board.StudyBoardRepository;
 import com.example.highpass_backend.repository.chat.ChatMessageRepository;
 import com.example.highpass_backend.repository.chat.ChatParticipantRepository;
 import com.example.highpass_backend.repository.chat.ChatRoomRepository;
+import com.example.highpass_backend.repository.notification.NotificationRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +26,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,6 +43,7 @@ public class ChatService {
     private final ChatParticipantRepository chatParticipantRepository;
     private final SimpMessageSendingOperations messagingTemplate;
     private final StudyBoardRepository studyBoardRepository;
+    private final NotificationRepository notificationRepository;
 
     @Transactional
     public ChatRoom createOneToOneRoom(Long userId, Long partnerId) {
@@ -118,6 +126,19 @@ public class ChatService {
         ChatParticipant participant = chatParticipantRepository.findByChatRoomIdAndUserId(roomId, targetUserId).orElseThrow(() -> new RuntimeException("신청 내역이 없습니다 "));
 
         chatParticipantRepository.delete(participant);
+
+        ChatNotificationDto notification = ChatNotificationDto.builder()
+                .id(0L)
+                .senderNickname("")
+                .type("CHAT")
+                .message("'" + chatRoom.getName() + "' 채팅방 참여가 거절되었습니다.")
+                .content(chatRoom.getName())
+                .targetId(roomId)
+                .targetType("CHAT")
+                .createdAt(LocalDateTime.now().toString())
+                .isRead(false)
+                .build();
+        messagingTemplate.convertAndSend("/sub/notifications/" + targetUserId, notification);
     }
 
     @Transactional
@@ -217,8 +238,6 @@ public class ChatService {
 
         chatRoom.addParticipant(user, false);
 
-        messagingTemplate.convertAndSend("/sub/user/" + chatRoom.getOwnerId() + "/alarm", "참여 신청이 왔습니다.");
-
         messagingTemplate.convertAndSend("/sub/chat/room/" + roomId,
                 ChatMessageDto.builder()
                         .type(ChatMessageDto.MessageType.JOIN_REQUEST)
@@ -226,7 +245,26 @@ public class ChatService {
                         .senderId(userId)
                         .senderName(user.getNickname())
                         .build());
-    }
+
+        User roomOwner = userRepository.findById(chatRoom.getOwnerId())
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+
+        Notification notification = Notification.builder()
+                .recipient(roomOwner)
+                .senderNickname(user.getNickname())
+                .type(NotificationType.CHAT)
+                .targetId(roomId)
+                .targetType("CHAT")
+                .message(user.getNickname() + "님이 '" + chatRoom.getName() + "' 채팅방 참여를 요청했습니다.")
+                .content(chatRoom.getName())
+                .build();
+
+        notificationRepository.save(notification);
+        messagingTemplate.convertAndSend(
+                "/sub/notifications/" + chatRoom.getOwnerId(),
+                NotificationResponse.from(notification)
+        );}
+
 
     @Transactional
     public void approveParticipant(Long roomId, Long ownerId, Long targetUserId) {
@@ -241,12 +279,18 @@ public class ChatService {
 
         participant.setStatus(ChatParticipant.ParticipantStatus.JOINED);
 
-        messagingTemplate.convertAndSend("/sub/chat/room/" + roomId,
-                ChatMessageDto.builder()
-                        .type(ChatMessageDto.MessageType.APPROVE)
-                        .roomId(roomId)
-                        .senderId(targetUserId)
-                        .build());
+        ChatNotificationDto notification = ChatNotificationDto.builder()
+                .id(0L)
+                .senderNickname("")
+                .type("CHAT")
+                .message("'" + chatRoom.getName() + "' 채팅방 참여가 승인되었습니다.")
+                .content(chatRoom.getName())
+                .targetId(roomId)
+                .targetType("CHAT")
+                .createdAt(LocalDateTime.now().toString())
+                .isRead(false)
+                .build();
+        messagingTemplate.convertAndSend("/sub/notifications/" + targetUserId, notification);
     }
 
     @Transactional
@@ -339,7 +383,7 @@ public class ChatService {
 
         if (study.getChatRoom() == null) {
             ChatRoom newRoom = ChatRoom.builder()
-                    .name(study.getTitle() + " 채팅방")
+                    .name(study.getTitle() )
                     .type(ChatRoom.ChatType.GROUP)
                     .isApprovalRequired(true)
                     .ownerId(study.getUser().getId())
@@ -374,7 +418,41 @@ public class ChatService {
                     user.getNickname() + "님이 입장하셨습니다.");
         }
 
+
+        if (participant.getStatus() == ChatParticipant.ParticipantStatus.JOINED) {
+            messagingTemplate.convertAndSend("/sub/chat/room/" + room.getId(),
+                    user.getNickname() + "님이 입장하셨습니다.");
+        }
+
+        if (participant.getStatus() == ChatParticipant.ParticipantStatus.PENDING) {
+            messagingTemplate.convertAndSend("/sub/chat/room/" + room.getId(),
+                    ChatMessageDto.builder()
+                            .type(ChatMessageDto.MessageType.JOIN_REQUEST)
+                            .roomId(room.getId())
+                            .senderId(userId)
+                            .senderName(user.getNickname())
+                            .build());
+
+            User roomOwner = userRepository.findById(room.getOwnerId())
+                    .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+
+            Notification notification = Notification.builder()
+                    .recipient(roomOwner)
+                    .senderNickname(user.getNickname())
+                    .type(NotificationType.CHAT)
+                    .targetId(room.getId())
+                    .targetType("CHAT")
+                    .message(user.getNickname() + "님이 '" + room.getName() + "' 채팅방 참여를 요청했습니다.")
+                    .content(room.getName())
+                    .build();
+
+            notificationRepository.save(notification);
+            messagingTemplate.convertAndSend("/sub/notifications/" + room.getOwnerId(),
+                    NotificationResponse.from(notification));
+        }
+
         return new StudyChatJoinResponse(room.getId(), participant.getStatus().name());
     }
+
 }
 

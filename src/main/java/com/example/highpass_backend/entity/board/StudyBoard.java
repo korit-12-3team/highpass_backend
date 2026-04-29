@@ -37,7 +37,7 @@ public class StudyBoard {
     @Column(nullable = false, length = 50)
     private String locationName;
 
-    @Column(length = 100)
+    @Column(length = 100, nullable = false)
     private String cert;
 
     @Column(nullable = false)
