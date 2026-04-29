@@ -419,11 +419,6 @@ public class ChatService {
         }
 
 
-        if (participant.getStatus() == ChatParticipant.ParticipantStatus.JOINED) {
-            messagingTemplate.convertAndSend("/sub/chat/room/" + room.getId(),
-                    user.getNickname() + "님이 입장하셨습니다.");
-        }
-
         if (participant.getStatus() == ChatParticipant.ParticipantStatus.PENDING) {
             messagingTemplate.convertAndSend("/sub/chat/room/" + room.getId(),
                     ChatMessageDto.builder()
