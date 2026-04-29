@@ -9,6 +9,7 @@ import com.example.highpass_backend.repository.user.UserRepository;
 import com.example.highpass_backend.security.JwtProperties;
 import com.example.highpass_backend.security.JwtTokenProvider;
 import com.example.highpass_backend.service.user.UserPresenceService;
+import com.example.highpass_backend.util.NicknameNormalizer;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,15 +33,23 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse signup(UserSignupRequest request, HttpServletResponse response) {
+        String sanitizedNickname = NicknameNormalizer.sanitizeForStorage(request.getNickname());
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+        if (sanitizedNickname == null || sanitizedNickname.isBlank()) {
+            throw new IllegalArgumentException("닉네임을 입력해 주세요.");
+        }
+        if (userRepository.existsByNickname(sanitizedNickname)) {
+            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
         }
 
         User user = userRepository.save(
                 User.builder()
                         .email(request.getEmail())
                         .password(passwordEncoder.encode(request.getPassword()))
-                        .nickname(request.getNickname())
+                        .nickname(sanitizedNickname)
                         .ageRange(request.getAgeRange())
                         .gender(request.getGender())
                         .siDo(request.getSiDo())
