@@ -93,6 +93,7 @@ gcloud run deploy highpass-backend \
   --allow-unauthenticated \
   --max-instances 1 \
   --add-cloudsql-instances <PROJECT_ID>:asia-northeast3:highpass-mysql \
+  --set-env-vars SPRING_PROFILES_ACTIVE=prod \
   --set-env-vars FRONTEND_URL=https://highpassfrontend.vercel.app \
   --set-env-vars SECURE_COOKIE=true \
   --set-env-vars SPRING_DATASOURCE_URL='jdbc:mysql:///highpassdb?cloudSqlInstance=<PROJECT_ID>:asia-northeast3:highpass-mysql&socketFactory=com.google.cloud.sql.mysql.SocketFactory&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul' \
@@ -159,6 +160,7 @@ Check:
 
 - `env.properties` is for local development only.
 - Cloud Run should receive runtime values from the first `gcloud run deploy` or Secret Manager.
+- `SPRING_PROFILES_ACTIVE=prod` enables Flyway migrations and sets Hibernate schema handling to `validate` by default.
 - `SECURE_COOKIE=true` is correct for Cloud Run because the service is served over HTTPS.
 - CORS uses `FRONTEND_URL`, so that value must exactly match the Vercel origin.
 - The Cloud Build trigger in this repository only updates the image and redeploys the existing service.

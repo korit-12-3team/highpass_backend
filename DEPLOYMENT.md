@@ -43,12 +43,15 @@ That value must match the deployed Vercel origin so that:
 
 Typical production values:
 
+- `SPRING_PROFILES_ACTIVE=prod`
 - `FRONTEND_URL=https://highpassfrontend.vercel.app`
 - `SECURE_COOKIE=true`
 - `SPRING_DATASOURCE_URL=jdbc:mysql:///highpassdb?cloudSqlInstance=<PROJECT:REGION:INSTANCE>&socketFactory=com.google.cloud.sql.mysql.SocketFactory&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul`
 - `SPRING_DATASOURCE_USERNAME=<production-db-user>`
 - `SPRING_DATASOURCE_PASSWORD=<production-db-password>`
 - `JWT_SECRET_KEY=<production-secret>`
+
+With the `prod` profile, Flyway runs database migrations and Hibernate uses `ddl-auto=validate` by default. Override `SPRING_JPA_HIBERNATE_DDL_AUTO` only for an intentional maintenance task.
 
 If the frontend domain changes, update `FRONTEND_URL` on Cloud Run to the exact deployed origin. Social login providers must also allow that frontend origin and the backend callback URI for the active backend domain.
 

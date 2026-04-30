@@ -1,6 +1,7 @@
 HELP.md
 .gradle
 .gradle-user-home/
+.gradle-home/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -39,3 +40,4 @@ out/
 
 # Environments
 env.properties
+cloudrun-env.yaml
