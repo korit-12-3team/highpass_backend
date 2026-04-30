@@ -47,6 +47,9 @@ public class FreeBoard {
     @Column(nullable = false, length = 20)
     private Status status = Status.VISIBLE;
 
+    @Column(length = 200)
+    private String tags;
+
     public void updateBoard(String title, String content) {
         if (title != null) {
             this.title = title;

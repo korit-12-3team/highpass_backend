@@ -29,6 +29,7 @@ public class FreeBoardService {
                 .user(user)
                 .title(request.title())
                 .content(request.content())
+                .tags(request.tags() != null ? String.join(",", request.tags()) : null)
                 .build();
 
         return FreeBoardResponse.from(freeBoardRepository.save(freeBoard));
@@ -69,6 +70,7 @@ public class FreeBoardService {
         boardSupportService.assertCanModify(currentUserId, freeBoard.getUser().getId());
 
         freeBoard.updateBoard(request.title(), request.content());
+        freeBoard.setTags(request.tags() != null ? String.join(",", request.tags()) : null);
         return FreeBoardResponse.from(freeBoard);
     }
 
