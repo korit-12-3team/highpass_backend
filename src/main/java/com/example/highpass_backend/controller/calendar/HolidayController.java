@@ -4,7 +4,6 @@ import com.example.highpass_backend.dto.calendar.HolidayDto;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper; // ⭐️ XmlMapper 대신 ObjectMapper 사용
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -19,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @RestController
 @RequestMapping("/api/calendar")
 @CrossOrigin(origins = "http://localhost:3000")
-@PropertySource("file:env.properties")
 public class HolidayController {
 
     @Value("${HOLIDAY_API_KEY}")
