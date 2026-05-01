@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 @Getter
 @Builder
@@ -16,6 +18,7 @@ public class FreeBoardResponse {
     private String title;
     private String content;
     private String nickname;
+    private List<String> tags;
 
     private int viewCount;
     private int likeCount;
@@ -34,6 +37,9 @@ public class FreeBoardResponse {
                 .title(board.getTitle())
                 .content(board.getContent())
                 .nickname(UserDisplayName.nickname(board.getUser()))
+                .tags(board.getTags() != null
+                        ? Arrays.asList(board.getTags().split(","))
+                        : List.of())
                 .viewCount(board.getViewCount())
                 .likeCount(board.getLikeCount())
                 .likedByUser(likedByUser)
