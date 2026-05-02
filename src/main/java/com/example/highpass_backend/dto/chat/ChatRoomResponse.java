@@ -78,6 +78,7 @@ public class ChatRoomResponse {
                                 .count();
 
                         return ChatMessageDto.builder()
+                                .id(message.getId())
                                 .roomId(this.id)
                                 .senderId(message.getSender() != null ? message.getSender().getId() : 0L)
                                 .senderName(message.getSender() != null ? message.getSender().getNickname() : "알 수 없음")
@@ -87,6 +88,7 @@ public class ChatRoomResponse {
                                         ? ChatMessageDto.MessageType.valueOf(message.getType().name())
                                         : ChatMessageDto.MessageType.TALK)
                                 .unreadCount(unread)
+                                .deleted(message.isDeleted())
                                 .build();
                     })
                     .collect(Collectors.toList());
