@@ -127,6 +127,15 @@ public class ChatRoomController {
         return ResponseEntity.ok(chatService.joinStudyChat(studyId, principal.getUserId()));
     }
 
+    @DeleteMapping("/messages/{messageId}")
+    public ResponseEntity<Void> deleteMessage(
+            @PathVariable Long messageId,
+            @AuthenticationPrincipal CustomJwtPrincipal principal
+    ) {
+        chatService.deleteMessage(messageId, principal.getUserId());
+        return ResponseEntity.ok().build();
+    }
+
     @PatchMapping("/rooms/{roomId}/nickname")
     public ResponseEntity<Void> updateChatRoomName(
             @PathVariable Long roomId,

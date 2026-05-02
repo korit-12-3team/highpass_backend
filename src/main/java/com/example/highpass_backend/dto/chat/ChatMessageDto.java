@@ -13,14 +13,17 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ChatMessageDto {
 
+    private Long id;
     private Long roomId;
     private Long senderId;
     private Long receiverId;
+    private boolean deleted;
     private String senderName;
     private String message;
     private LocalDateTime createdAt;
     private Long unreadCount;
     private MessageType type;
+    private String roomName;
 
     public enum MessageType {
         ENTER, TALK, QUIT, JOIN_REQUEST, APPROVE, NOTICE, READ

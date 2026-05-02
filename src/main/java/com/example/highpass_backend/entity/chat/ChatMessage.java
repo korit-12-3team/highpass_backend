@@ -36,6 +36,9 @@ public class ChatMessage {
     @Enumerated(EnumType.STRING)
     private MessageType type;
 
+    @Column(nullable = true)
+    private Boolean deleted;
+
     public enum MessageType {
         TALK, ENTER, QUIT, NOTICE
     }
@@ -46,5 +49,13 @@ public class ChatMessage {
         this.sender = sender;
         this.message = message;
         this.type = type;
+    }
+
+    public boolean isDeleted() {
+        return Boolean.TRUE.equals(deleted);
+    }
+
+    public void markAsDeleted() {
+        this.deleted = true;
     }
 }

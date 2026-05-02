@@ -160,11 +160,22 @@ public class ChatService {
 
         room.setName(newName);
 
+        ChatMessage noticeMessage = ChatMessage.builder()
+                .chatRoom(room)
+                .sender(null)
+                .message("채팅방 이름이 '" + newName + "'으로 변경되었습니다.")
+                .type(ChatMessage.MessageType.NOTICE)
+                .build();
+        chatMessageRepository.save(noticeMessage);
+
         messagingTemplate.convertAndSend("/sub/chat/room/" + roomId,
                 ChatMessageDto.builder()
                         .type(ChatMessageDto.MessageType.NOTICE)
                         .roomId(roomId)
-                        .message("채팅방 이름이 '" + newName + "'으로 변경되었습니다.")
+                        .id(noticeMessage.getId())
+                        .createdAt(noticeMessage.getCreatedAt())
+                        .message(noticeMessage.getMessage())
+                        .roomName(newName)
                         .build());
     }
 
@@ -278,6 +289,26 @@ public class ChatService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방 또는 사용자입니다."));
 
         participant.setStatus(ChatParticipant.ParticipantStatus.JOINED);
+
+        String nickname = participant.getUser().getNickname();
+
+        ChatMessage enterMessage = ChatMessage.builder()
+                .chatRoom(chatRoom)
+                .sender(participant.getUser())
+                .message(nickname + "님이 입장하셨습니다.")
+                .type(ChatMessage.MessageType.ENTER)
+                .build();
+        chatMessageRepository.save(enterMessage);
+
+        messagingTemplate.convertAndSend("/sub/chat/room/" + roomId,
+                ChatMessageDto.builder()
+                        .type(ChatMessageDto.MessageType.ENTER)
+                        .roomId(roomId)
+                        .senderId(targetUserId)
+                        .senderName(nickname)
+                        .message(nickname + "님이 입장하셨습니다.")
+                        .createdAt(enterMessage.getCreatedAt())
+                        .build());
 
         ChatNotificationDto notification = ChatNotificationDto.builder()
                 .id(0L)
@@ -447,6 +478,16 @@ public class ChatService {
         }
 
         return new StudyChatJoinResponse(room.getId(), participant.getStatus().name());
+    }
+
+    @Transactional
+    public void deleteMessage(Long messageId, Long userId) {
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("메시지를 찾을 수 없습니다."));
+        if (!message.getSender().getId().equals(userId)) {
+            throw new RuntimeException("본인 메시지만 삭제할 수 있습니다.");
+        }
+        message.markAsDeleted();
     }
 
 }
