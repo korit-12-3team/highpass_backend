@@ -136,6 +136,16 @@ public class ChatRoomController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/rooms/{roomId}/owner/{targetUserId}")
+    public ResponseEntity<Void> transferOwner(
+            @PathVariable Long roomId,
+            @PathVariable Long targetUserId,
+            @AuthenticationPrincipal CustomJwtPrincipal principal
+    ) {
+        chatService.transferOwner(roomId, principal.getUserId(), targetUserId);
+        return ResponseEntity.ok().build();
+    }
+
     @PatchMapping("/rooms/{roomId}/nickname")
     public ResponseEntity<Void> updateChatRoomName(
             @PathVariable Long roomId,

@@ -25,7 +25,7 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     @Query("SELECT COUNT(p) FROM ChatParticipant p " +
             "WHERE p.chatRoom.id = :roomId " +
             "AND p.user.id != :senderId " +
-            "AND p.isOnline = false")
-    int countOfflineParticipants(@Param("roomId") Long roomId, @Param("senderId") Long senderId);
+            "AND p.status = com.example.highpass_backend.entity.chat.ChatParticipant.ParticipantStatus.JOINED")
+    int countUnreadParticipants(@Param("roomId") Long roomId, @Param("senderId") Long senderId);
 
 }
