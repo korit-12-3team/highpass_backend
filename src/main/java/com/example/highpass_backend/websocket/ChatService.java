@@ -2,7 +2,9 @@ package com.example.highpass_backend.websocket;
 
 import com.example.highpass_backend.dto.chat.ChatMessageDto;
 import com.example.highpass_backend.dto.chat.ChatParticipantResponse;
+import com.example.highpass_backend.dto.chat.ChatRoomReadStateResponse;
 import com.example.highpass_backend.dto.chat.ChatRoomResponse;
+import com.example.highpass_backend.dto.chat.MessageReadStateResponse;
 import com.example.highpass_backend.dto.chat.StudyChatJoinResponse;
 import com.example.highpass_backend.dto.notification.ChatNotificationDto;
 import com.example.highpass_backend.dto.notification.NotificationResponse;
@@ -27,9 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -142,6 +146,18 @@ public class ChatService {
     }
 
     @Transactional
+    public void cancelJoinRequest(Long roomId, Long userId) {
+        ChatParticipant participant = chatParticipantRepository.findByChatRoomIdAndUserId(roomId, userId)
+                .orElseThrow(() -> new RuntimeException("참여 요청 내역이 없습니다."));
+
+        if (participant.getStatus() != ChatParticipant.ParticipantStatus.PENDING) {
+            throw new RuntimeException("승인 대기 중인 요청만 취소할 수 있습니다.");
+        }
+
+        chatParticipantRepository.delete(participant);
+    }
+
+    @Transactional
     public void updateOnlineStatus(Long roomId, Long userId, boolean isOnline) {
         ChatParticipant participant = chatParticipantRepository.findByChatRoomIdAndUserId(roomId, userId)
                 .orElseThrow(() -> new RuntimeException("참여 정보 없음"));
@@ -240,6 +256,50 @@ public class ChatService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public ChatRoomReadStateResponse getReadState(Long roomId, Long userId, List<Long> messageIds) {
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방입니다."));
+
+        ChatParticipant myParticipant = room.getParticipants().stream()
+                .filter(participant -> participant.getUser() != null)
+                .filter(participant -> participant.getUser().getId().equals(userId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("참여 중인 채팅방이 아닙니다."));
+
+        if (myParticipant.getStatus() == ChatParticipant.ParticipantStatus.PENDING) {
+            throw new RuntimeException("승인 대기 중인 채팅방은 읽음 상태를 조회할 수 없습니다.");
+        }
+
+        Set<Long> targetMessageIds = messageIds == null ? Set.of() : new HashSet<>(messageIds);
+
+        List<MessageReadStateResponse> states = room.getMessages().stream()
+                .filter(message -> message.getId() != null)
+                .filter(message -> targetMessageIds.isEmpty() || targetMessageIds.contains(message.getId()))
+                .map(message -> {
+                    Long senderId = message.getSender() != null ? message.getSender().getId() : null;
+                    long unread = room.getParticipants().stream()
+                            .filter(participant -> participant.getUser() != null)
+                            .filter(participant -> !participant.getUser().getId().equals(senderId))
+                            .filter(participant -> participant.getStatus() == ChatParticipant.ParticipantStatus.JOINED)
+                            .filter(participant -> participant.getLastReadAt() == null || participant.getLastReadAt().isBefore(message.getCreatedAt()))
+                            .count();
+
+                    List<Long> readers = room.getParticipants().stream()
+                            .filter(participant -> participant.getUser() != null)
+                            .filter(participant -> !participant.getUser().getId().equals(senderId))
+                            .filter(participant -> participant.getStatus() == ChatParticipant.ParticipantStatus.JOINED)
+                            .filter(participant -> participant.getLastReadAt() != null && !participant.getLastReadAt().isBefore(message.getCreatedAt()))
+                            .map(participant -> participant.getUser().getId())
+                            .collect(Collectors.toList());
+
+                    return new MessageReadStateResponse(message.getId(), unread, readers);
+                })
+                .collect(Collectors.toList());
+
+        return new ChatRoomReadStateResponse(roomId, states);
+    }
+
     private void saveMessageToDb(ChatMessageDto dto) {
         ChatRoom chatRoom = chatRoomRepository.findById(dto.getRoomId()).orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방입니다."));
 
@@ -251,7 +311,11 @@ public class ChatService {
                 .message(dto.getMessage())
                 .type(ChatMessage.MessageType.TALK)
                 .build();
-        chatMessageRepository.save(chatMessage);
+        ChatMessage savedMessage = chatMessageRepository.saveAndFlush(chatMessage);
+        dto.setId(savedMessage.getId());
+        if (savedMessage.getCreatedAt() != null) {
+            dto.setCreatedAt(savedMessage.getCreatedAt());
+        }
 
     }
 

@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -37,6 +38,13 @@ public class ReportService {
     private final CommentRepository commentRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
+
+    @Transactional(readOnly = true)
+    public List<ReportResponse> getMyReports(Long userId) {
+        return reportRepository.findByReporterIdOrderByCreatedAtDesc(userId).stream()
+                .map(ReportResponse::from)
+                .toList();
+    }
 
     @Transactional
     public ReportResponse createReport(Long reporterUserId, CreateReportRequest request) {
@@ -188,7 +196,7 @@ public class ReportService {
 
         String roomLabel = room.getName();
         if (roomLabel == null || roomLabel.isBlank()) {
-            roomLabel = UserDisplayName.nickname(partner.getUser()) + " 채팅방";
+            roomLabel = UserDisplayName.nickname(partner.getUser());
         }
         return new ResolvedTarget(String.valueOf(room.getId()), roomLabel);
     }

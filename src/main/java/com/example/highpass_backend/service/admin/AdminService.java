@@ -108,11 +108,14 @@ public class AdminService {
     }
 
     @Transactional
-    public AdminReportResponse updateReportStatus(Long adminUserId, String reportId, String status) {
+    public AdminReportResponse updateReportStatus(Long adminUserId, String reportId, String status, String message) {
         requireAdmin(adminUserId);
         Report report = reportRepository.findById(parseLong(reportId, "신고 ID가 올바르지 않습니다."))
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "신고를 찾을 수 없습니다."));
         report.updateStatus(parseReportStatus(status));
+        if (message != null && !message.isBlank()) {
+            report.respond(message.trim());
+        }
         return toAdminReportResponse(report);
     }
 
@@ -255,6 +258,8 @@ public class AdminService {
                 ),
                 report.getCreatedAt() == null ? "" : report.getCreatedAt().toString(),
                 report.getStatus().name().toLowerCase(Locale.ROOT),
+                report.getAdminResponse(),
+                report.getRespondedAt() == null ? null : report.getRespondedAt().toString(),
                 buildUserDetail(report),
                 buildPostDetail(report),
                 buildCommentDetail(report),
@@ -356,6 +361,7 @@ public class AdminService {
                     return new AdminReportResponse.ChatDetail(
                             String.valueOf(room.getId()),
                             safe(room.getName()),
+                            room.getType() == null ? "PERSONAL" : room.getType().name(),
                             chatPartner,
                             messages
                     );

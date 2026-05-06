@@ -46,12 +46,23 @@ public class Report {
     @Column(nullable = false, length = 20)
     private Status status = Status.PENDING;
 
+    @Column(name = "admin_response", length = 2000)
+    private String adminResponse;
+
+    @Column(name = "responded_at")
+    private LocalDateTime respondedAt;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     public void updateStatus(Status status) {
         this.status = status;
+    }
+
+    public void respond(String message) {
+        this.adminResponse = message;
+        this.respondedAt = LocalDateTime.now();
     }
 
     public enum TargetType {

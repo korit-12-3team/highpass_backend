@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -88,6 +90,11 @@ public class CertificateService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<LocalDateTime> getLastSyncedAt() {
+        return nationalCertificateRepository.findMaxUpdatedAt();
+    }
+
+    @Transactional(readOnly = true)
     public List<CertificateScheduleResponse> getSchedules() {
         return nationalCertificateRepository.findAllByOrderByYearAscCertificateNameAscRoundAsc().stream()
                 .map(entity -> CertificateScheduleResponse.builder()
@@ -148,6 +155,7 @@ public class CertificateService {
             if (applyUpdates(existing, incoming)) {
                 updatedCount++;
             }
+            nationalCertificateRepository.save(existing);
         }
 
         return CertificateSyncResponse.builder()

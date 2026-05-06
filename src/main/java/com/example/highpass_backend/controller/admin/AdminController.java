@@ -66,7 +66,7 @@ public class AdminController {
             @Valid @RequestBody AdminStatusRequest request,
             @AuthenticationPrincipal CustomJwtPrincipal principal
     ) {
-        return ResponseEntity.ok(adminService.updateReportStatus(principal.getUserId(), reportId, request.status()));
+        return ResponseEntity.ok(adminService.updateReportStatus(principal.getUserId(), reportId, request.status(), request.message()));
     }
 
 }
