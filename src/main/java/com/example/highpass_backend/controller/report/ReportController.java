@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reports")
@@ -34,5 +36,12 @@ public class ReportController {
     ) {
         ReportResponse response = reportService.createSupportInquiry(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<ReportResponse>> getMyReports(
+            @AuthenticationPrincipal CustomJwtPrincipal principal
+    ) {
+        return ResponseEntity.ok(reportService.getMyReports(principal.getUserId()));
     }
 }

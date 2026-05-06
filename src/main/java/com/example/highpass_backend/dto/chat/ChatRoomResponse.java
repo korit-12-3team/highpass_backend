@@ -65,7 +65,7 @@ public class ChatRoomResponse {
         if (!isJoined) {
             this.unreadCount = 0L;
             this.lastMessage = "승인 대기 중입니다.";
-            this.lastMessageTime = entity.getCreatedAt();
+            this.lastMessageTime = joinedAt != null ? joinedAt : entity.getCreatedAt();
             return;
         }
 
@@ -73,14 +73,17 @@ public class ChatRoomResponse {
             this.messages = entity.getMessages().stream()
                     .filter(message -> joinedAt == null || message.getCreatedAt().isAfter(joinedAt))
                     .map(message -> {
+                        Long messageSenderId = message.getSender() != null ? message.getSender().getId() : null;
                         long unread = entity.getParticipants().stream()
-                                .filter(participant -> participant.getUser() != null && !participant.getUser().getId().equals(currentUserId))
+                                .filter(participant -> participant.getUser() != null)
+                                .filter(participant -> !participant.getUser().getId().equals(messageSenderId))
                                 .filter(participant -> participant.getStatus() == ChatParticipant.ParticipantStatus.JOINED)
                                 .filter(participant -> participant.getLastReadAt() == null || participant.getLastReadAt().isBefore(message.getCreatedAt()))
                                 .count();
 
                         List<Long> readers = entity.getParticipants().stream()
                                 .filter(participant -> participant.getUser() != null)
+                                .filter(participant -> !participant.getUser().getId().equals(messageSenderId))
                                 .filter(participant -> participant.getStatus() == ChatParticipant.ParticipantStatus.JOINED)
                                 .filter(participant -> participant.getLastReadAt() != null && !participant.getLastReadAt().isBefore(message.getCreatedAt()))
                                 .map(participant -> participant.getUser().getId())

@@ -9,4 +9,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     int countByTargetTypeAndTargetId(Report.TargetType targetType, String targetId);
 
     List<Report> findAllByOrderByCreatedAtDesc();
+
+    List<Report> findByReporterIdOrderByCreatedAtDesc(Long reporterId);
 }

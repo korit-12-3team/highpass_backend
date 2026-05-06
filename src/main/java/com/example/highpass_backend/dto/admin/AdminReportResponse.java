@@ -11,6 +11,8 @@ public record AdminReportResponse(
         ReporterInfo reporter,
         String createdAt,
         String status,
+        String adminResponse,
+        String respondedAt,
         UserDetail userDetail,
         PostDetail postDetail,
         CommentDetail commentDetail,
@@ -52,6 +54,7 @@ public record AdminReportResponse(
     public record ChatDetail(
             String roomId,
             String roomName,
+            String roomType,
             ChatPartner partner,
             List<AdminReportChatMessageResponse> messages
     ) {

@@ -2,10 +2,11 @@ package com.example.highpass_backend.entity.certificate;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
@@ -54,5 +55,7 @@ public class NationalCertificate {
     @Column(name = "practical_Result_Date")
     private LocalDate practicalResultDate;
 
-
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

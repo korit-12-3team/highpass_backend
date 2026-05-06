@@ -1,6 +1,8 @@
 package com.example.highpass_backend.websocket;
 
 import com.example.highpass_backend.dto.chat.ChatParticipantResponse;
+import com.example.highpass_backend.dto.chat.ChatReadStateRequest;
+import com.example.highpass_backend.dto.chat.ChatRoomReadStateResponse;
 import com.example.highpass_backend.dto.chat.ChatRoomResponse;
 import com.example.highpass_backend.dto.chat.GroupChatCreateRequest;
 import com.example.highpass_backend.dto.chat.StudyChatJoinResponse;
@@ -57,6 +59,16 @@ public class ChatRoomController {
     ) {
         chatService.updateLastReadTime(roomId, principal.getUserId());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/rooms/{roomId}/read-state")
+    public ResponseEntity<ChatRoomReadStateResponse> getReadState(
+            @PathVariable Long roomId,
+            @RequestBody(required = false) ChatReadStateRequest request,
+            @AuthenticationPrincipal CustomJwtPrincipal principal
+    ) {
+        List<Long> messageIds = request != null ? request.messageIds() : Collections.emptyList();
+        return ResponseEntity.ok(chatService.getReadState(roomId, principal.getUserId(), messageIds));
     }
 
     @GetMapping("/rooms/{roomId}/pending")
@@ -116,6 +128,15 @@ public class ChatRoomController {
             @AuthenticationPrincipal CustomJwtPrincipal principal
     ) {
         chatService.leaveRoom(roomId, principal.getUserId());
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/rooms/{roomId}/join-request")
+    public ResponseEntity<Void> cancelJoinRequest(
+            @PathVariable Long roomId,
+            @AuthenticationPrincipal CustomJwtPrincipal principal
+    ) {
+        chatService.cancelJoinRequest(roomId, principal.getUserId());
         return ResponseEntity.ok().build();
     }
 

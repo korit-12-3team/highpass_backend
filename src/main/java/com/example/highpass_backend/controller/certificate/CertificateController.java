@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/certificates")
@@ -23,6 +25,12 @@ public class CertificateController {
 
     private final CertificateService certificateService;
     private final CertificateDataService certificateDataService;
+
+    @GetMapping(value = "/last-synced", produces = "application/json")
+    public ResponseEntity<Map<String, Object>> getLastSyncedAt() {
+        LocalDateTime lastSyncedAt = certificateService.getLastSyncedAt().orElse(null);
+        return ResponseEntity.ok(Map.of("lastSyncedAt", lastSyncedAt != null ? lastSyncedAt.toString() : ""));
+    }
 
     @GetMapping(value = "/schedules", produces = "application/json")
     public List<CertificateScheduleResponse> getSchedules() {

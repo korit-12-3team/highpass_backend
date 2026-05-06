@@ -12,7 +12,9 @@ public record ReportResponse(
         String reasonCode,
         String reason,
         String status,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String adminResponse,
+        LocalDateTime respondedAt
 ) {
     public static ReportResponse from(Report report) {
         return new ReportResponse(
@@ -23,7 +25,9 @@ public record ReportResponse(
                 report.getReasonCode(),
                 report.getReason(),
                 report.getStatus().name().toLowerCase(),
-                report.getCreatedAt()
+                report.getCreatedAt(),
+                report.getAdminResponse(),
+                report.getRespondedAt()
         );
     }
 }
