@@ -25,7 +25,8 @@ public class ChatRoomResponse {
 
     public ChatRoomResponse(ChatRoom entity, Long currentUserId) {
         this.id = entity.getId();
-        this.type = entity.getType().name();
+        ChatRoom.ChatType roomType = entity.getType() != null ? entity.getType() : ChatRoom.ChatType.PERSONAL;
+        this.type = roomType.name();
         this.ownerId = entity.getOwnerId();
 
         this.participants = entity.getParticipants().stream()
@@ -53,10 +54,10 @@ public class ChatRoomResponse {
 
         boolean isJoined = myParticipation != null && (
                 myParticipation.getStatus() == ChatParticipant.ParticipantStatus.JOINED
-                        || (entity.getType() == ChatRoom.ChatType.PERSONAL && myParticipation.getStatus() == null)
+                        || (roomType == ChatRoom.ChatType.PERSONAL && myParticipation.getStatus() == null)
         );
 
-        this.name = entity.getType() == ChatRoom.ChatType.GROUP
+        this.name = roomType == ChatRoom.ChatType.GROUP
                 ? entity.getName() :null;
 
         this.messages = new ArrayList<>();

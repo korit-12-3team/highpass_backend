@@ -22,6 +22,7 @@ public class Notification {
     private String senderNickname; // 알림 발신자 닉네임 (또는 시스템)
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private NotificationType type; // COMMENT, LIKE, CALENDAR
 
     private String message; // 알림 메시지

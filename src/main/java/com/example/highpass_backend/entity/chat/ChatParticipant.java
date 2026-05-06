@@ -45,6 +45,7 @@ public class ChatParticipant {
         PENDING, JOINED, REJECTED
     }
 
+    @Enumerated(EnumType.STRING)
     private ParticipantStatus status;
 
     public void updateLastRead() {
@@ -55,6 +56,7 @@ public class ChatParticipant {
     @PrePersist
     public void prePersist() {
         this.lastReadAt = this.lastReadAt == null ? LocalDateTime.now() : this.lastReadAt;
-        this.joinedAt = LocalDateTime.now();  // 추가
+        this.joinedAt = this.joinedAt == null ? LocalDateTime.now() : this.joinedAt;
+        this.status = this.status == null ? ParticipantStatus.JOINED : this.status;
     }
 }
