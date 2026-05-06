@@ -63,7 +63,7 @@ public class ChatRoomResponse {
 
         if (!isJoined) {
             this.unreadCount = 0L;
-            this.lastMessage = "확인 대기 중입니다.";
+            this.lastMessage = "승인 대기 중입니다.";
             this.lastMessageTime = entity.getCreatedAt();
             return;
         }
@@ -74,8 +74,16 @@ public class ChatRoomResponse {
                     .map(message -> {
                         long unread = entity.getParticipants().stream()
                                 .filter(participant -> participant.getUser() != null && !participant.getUser().getId().equals(currentUserId))
+                                .filter(participant -> participant.getStatus() == ChatParticipant.ParticipantStatus.JOINED)
                                 .filter(participant -> participant.getLastReadAt() == null || participant.getLastReadAt().isBefore(message.getCreatedAt()))
                                 .count();
+
+                        List<Long> readers = entity.getParticipants().stream()
+                                .filter(participant -> participant.getUser() != null)
+                                .filter(participant -> participant.getStatus() == ChatParticipant.ParticipantStatus.JOINED)
+                                .filter(participant -> participant.getLastReadAt() != null && !participant.getLastReadAt().isBefore(message.getCreatedAt()))
+                                .map(participant -> participant.getUser().getId())
+                                .collect(Collectors.toList());
 
                         return ChatMessageDto.builder()
                                 .id(message.getId())
@@ -88,6 +96,7 @@ public class ChatRoomResponse {
                                         ? ChatMessageDto.MessageType.valueOf(message.getType().name())
                                         : ChatMessageDto.MessageType.TALK)
                                 .unreadCount(unread)
+                                .readers(readers)
                                 .deleted(message.isDeleted())
                                 .build();
                     })

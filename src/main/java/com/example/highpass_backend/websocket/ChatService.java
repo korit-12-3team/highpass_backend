@@ -124,21 +124,20 @@ public class ChatService {
             throw new RuntimeException("권한이 없습니다.");
         }
         ChatParticipant participant = chatParticipantRepository.findByChatRoomIdAndUserId(roomId, targetUserId).orElseThrow(() -> new RuntimeException("신청 내역이 없습니다 "));
+        User targetUser = participant.getUser();
 
         chatParticipantRepository.delete(participant);
 
-        ChatNotificationDto notification = ChatNotificationDto.builder()
-                .id(0L)
+        Notification rejectNotification = Notification.builder()
+                .recipient(targetUser)
                 .senderNickname("")
-                .type("CHAT")
+                .type(NotificationType.CHAT)
                 .message("'" + chatRoom.getName() + "' 채팅방 참여가 거절되었습니다.")
                 .content(chatRoom.getName())
                 .targetId(roomId)
-                .targetType("CHAT")
-                .createdAt(LocalDateTime.now().toString())
-                .isRead(false)
                 .build();
-        messagingTemplate.convertAndSend("/sub/notifications/" + targetUserId, notification);
+        notificationRepository.save(rejectNotification);
+        messagingTemplate.convertAndSend("/sub/notifications/" + targetUserId, NotificationResponse.from(rejectNotification));
     }
 
     @Transactional
@@ -180,6 +179,43 @@ public class ChatService {
     }
 
     @Transactional
+    public void transferOwner(Long roomId, Long currentOwnerId, Long newOwnerId) {
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방입니다."));
+
+        if (!room.getOwnerId().equals(currentOwnerId)) {
+            throw new RuntimeException("방장만 위임할 수 있습니다.");
+        }
+
+        ChatParticipant currentOwnerParticipant = chatParticipantRepository.findByChatRoomIdAndUserId(roomId, currentOwnerId)
+                .orElseThrow(() -> new RuntimeException("방장 정보를 찾을 수 없습니다."));
+        ChatParticipant newOwnerParticipant = chatParticipantRepository.findByChatRoomIdAndUserId(roomId, newOwnerId)
+                .orElseThrow(() -> new RuntimeException("해당 참여자를 찾을 수 없습니다."));
+
+        currentOwnerParticipant.setOwner(false);
+        newOwnerParticipant.setOwner(true);
+        room.setOwnerId(newOwnerId);
+
+        ChatMessage noticeMessage = ChatMessage.builder()
+                .chatRoom(room)
+                .sender(null)
+                .message(newOwnerParticipant.getUser().getNickname() + "님이 새로운 방장이 되었습니다.")
+                .type(ChatMessage.MessageType.NOTICE)
+                .build();
+        chatMessageRepository.save(noticeMessage);
+
+        messagingTemplate.convertAndSend("/sub/chat/room/" + roomId,
+                ChatMessageDto.builder()
+                        .type(ChatMessageDto.MessageType.NOTICE)
+                        .roomId(roomId)
+                        .id(noticeMessage.getId())
+                        .createdAt(noticeMessage.getCreatedAt())
+                        .message(noticeMessage.getMessage())
+                        .newOwnerId(newOwnerId)
+                        .build());
+    }
+
+    @Transactional
     public void handleMessage(ChatMessageDto messageDto) {
         if (ChatMessageDto.MessageType.ENTER.equals(messageDto.getType())) {
             messageDto.setCreatedAt(LocalDateTime.now());
@@ -188,7 +224,7 @@ public class ChatService {
             messageDto.setUnreadCount(0L);
         } else if (ChatMessageDto.MessageType.TALK.equals(messageDto.getType())) {
             messageDto.setCreatedAt(LocalDateTime.now());
-            int unreadCount = chatParticipantRepository.countOfflineParticipants(messageDto.getRoomId(), messageDto.getSenderId());
+            int unreadCount = chatParticipantRepository.countUnreadParticipants(messageDto.getRoomId(), messageDto.getSenderId());
             messageDto.setUnreadCount((long) unreadCount);
 
             saveMessageToDb(messageDto);
@@ -310,18 +346,17 @@ public class ChatService {
                         .createdAt(enterMessage.getCreatedAt())
                         .build());
 
-        ChatNotificationDto notification = ChatNotificationDto.builder()
-                .id(0L)
+        Notification approveNotification = Notification.builder()
+                .recipient(participant.getUser())
                 .senderNickname("")
-                .type("CHAT")
+                .type(NotificationType.CHAT)
                 .message("'" + chatRoom.getName() + "' 채팅방 참여가 승인되었습니다.")
                 .content(chatRoom.getName())
                 .targetId(roomId)
                 .targetType("CHAT")
-                .createdAt(LocalDateTime.now().toString())
-                .isRead(false)
                 .build();
-        messagingTemplate.convertAndSend("/sub/notifications/" + targetUserId, notification);
+        notificationRepository.save(approveNotification);
+        messagingTemplate.convertAndSend("/sub/notifications/" + targetUserId, NotificationResponse.from(approveNotification));
     }
 
     @Transactional
