@@ -98,7 +98,8 @@ public class ChatService {
 
         chatRoomRepository.save(groupChatRoom);
 
-        groupChatRoom.addParticipant(Owner,true);
+        ChatParticipant ownerParticipant = groupChatRoom.addParticipant(Owner,true);
+        chatParticipantRepository.save(ownerParticipant);
 
         return groupChatRoom;
     }
@@ -278,12 +279,16 @@ public class ChatService {
     @Transactional
     public void requestJoin (Long roomId, Long userId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방입니다. "));
+        if (chatRoom.getOwnerId() == null) {
+            throw new RuntimeException("채팅방 방장 정보가 없습니다.");
+        }
         if (chatParticipantRepository.existsByChatRoomIdAndUserId(roomId, userId)) {
             throw new RuntimeException("이미 참여 중이거나 승인 대기 중인 방입니다.");
         }
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다. "));
 
-        chatRoom.addParticipant(user, false);
+        ChatParticipant participant = chatRoom.addParticipant(user, false);
+        chatParticipantRepository.save(participant);
 
         messagingTemplate.convertAndSend("/sub/chat/room/" + roomId,
                 ChatMessageDto.builder()
@@ -455,6 +460,8 @@ public class ChatService {
                     .ownerId(study.getUser().getId())
                     .build();
             chatRoomRepository.save(newRoom);
+            ChatParticipant ownerParticipant = newRoom.addParticipant(study.getUser(), true);
+            chatParticipantRepository.save(ownerParticipant);
             study.setChatRoom(newRoom);
         }
 
@@ -462,10 +469,22 @@ public class ChatService {
                 .orElseThrow(() -> new RuntimeException("유저가 없습니다."));
 
         ChatRoom room = study.getChatRoom();
+        if (room.getType() == null) {
+            room.setType(ChatRoom.ChatType.GROUP);
+        }
+        if (room.getName() == null || room.getName().isBlank()) {
+            room.setName(study.getTitle());
+        }
+        if (room.getOwnerId() == null) {
+            room.setOwnerId(study.getUser().getId());
+        }
 
         Optional<ChatParticipant> existing = chatParticipantRepository.findByChatRoomIdAndUserId(room.getId(), userId);
         if (existing.isPresent()) {
-                return new StudyChatJoinResponse(room.getId(), existing.get().getStatus().name());
+            ChatParticipant.ParticipantStatus status = existing.get().getStatus() != null
+                    ? existing.get().getStatus()
+                    : ChatParticipant.ParticipantStatus.JOINED;
+            return new StudyChatJoinResponse(room.getId(), status.name());
         }
 
         boolean isOwner = study.getUser().getId().equals(userId);

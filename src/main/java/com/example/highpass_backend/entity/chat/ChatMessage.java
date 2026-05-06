@@ -51,6 +51,12 @@ public class ChatMessage {
         this.type = type;
     }
 
+    @PrePersist
+    public void prePersist() {
+        this.type = this.type == null ? MessageType.TALK : this.type;
+        this.deleted = this.deleted == null ? false : this.deleted;
+    }
+
     public boolean isDeleted() {
         return Boolean.TRUE.equals(deleted);
     }

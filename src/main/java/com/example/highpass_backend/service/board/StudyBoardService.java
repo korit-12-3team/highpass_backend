@@ -12,6 +12,7 @@ import com.example.highpass_backend.entity.chat.ChatParticipant;
 import com.example.highpass_backend.entity.chat.ChatRoom;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.board.StudyBoardRepository;
+import com.example.highpass_backend.repository.chat.ChatParticipantRepository;
 import com.example.highpass_backend.repository.chat.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.util.Optional;
 public class StudyBoardService {
     private final StudyBoardRepository studyBoardRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final ChatParticipantRepository chatParticipantRepository;
     private final BoardSupportService boardSupportService;
 
     @Transactional
@@ -53,7 +55,8 @@ public class StudyBoardService {
                     .type(ChatRoom.ChatType.GROUP)
                     .build();
             savedChatRoom = chatRoomRepository.save(chatRoom);
-            chatRoom.addParticipant(user, true);
+            ChatParticipant ownerParticipant = chatRoom.addParticipant(user, true);
+            chatParticipantRepository.save(ownerParticipant);
             savedStudy.setChatRoom(savedChatRoom);
         }
 
@@ -91,7 +94,7 @@ public class StudyBoardService {
         if (room != null) {
             chatRoomId = room.getId();
             currentParticipants = room.getParticipants().stream()
-                    .filter(p -> p.getStatus() == ChatParticipant.ParticipantStatus.JOINED)
+                    .filter(p -> getParticipantStatus(p) == ChatParticipant.ParticipantStatus.JOINED)
                     .count();
 
             if (currentUserId != null) {
@@ -101,8 +104,9 @@ public class StudyBoardService {
 
                 if (participantOpt.isPresent()) {
                     ChatParticipant participant = participantOpt.get();
-                    participantStatus = participant.getStatus().name();
-                    isParticipant = participant.getStatus() == ChatParticipant.ParticipantStatus.JOINED;
+                    ChatParticipant.ParticipantStatus status = getParticipantStatus(participant);
+                    participantStatus = status.name();
+                    isParticipant = status == ChatParticipant.ParticipantStatus.JOINED;
                 }
             }
         }
@@ -160,6 +164,12 @@ public class StudyBoardService {
 
     private boolean isVisible(StudyBoard study) {
         return study.getStatus() == null || study.getStatus() == StudyBoard.Status.VISIBLE;
+    }
+
+    private ChatParticipant.ParticipantStatus getParticipantStatus(ChatParticipant participant) {
+        return participant.getStatus() != null
+                ? participant.getStatus()
+                : ChatParticipant.ParticipantStatus.JOINED;
     }
 
     private BusinessException notFound() {

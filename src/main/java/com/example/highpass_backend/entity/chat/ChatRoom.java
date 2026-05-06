@@ -58,7 +58,10 @@ public class ChatRoom {
         this.messages = new ArrayList<>();
     }
 
-    public void addParticipant(User user, boolean isOwner) {
+    public ChatParticipant addParticipant(User user, boolean isOwner) {
+        this.type = this.type == null ? ChatType.PERSONAL : this.type;
+        this.name = this.name == null ? "" : this.name;
+
         ChatParticipant.ParticipantStatus initialStatus;
 
         if (this.type == ChatType.PERSONAL || !this.isApprovalRequired || isOwner ) {
@@ -79,5 +82,13 @@ public class ChatRoom {
         if(isOwner) {
             this.ownerId = user.getId();
         }
+
+        return participant;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.type = this.type == null ? ChatType.PERSONAL : this.type;
+        this.name = this.name == null ? "" : this.name;
     }
 }
