@@ -18,6 +18,7 @@ public class FreeBoardResponse {
     private String title;
     private String content;
     private String nickname;
+    private String avatarVisualClassName;
     private List<String> tags;
 
     private int viewCount;
@@ -37,6 +38,7 @@ public class FreeBoardResponse {
                 .title(board.getTitle())
                 .content(board.getContent())
                 .nickname(UserDisplayName.nickname(board.getUser()))
+                .avatarVisualClassName(board.getUser().getAvatarVisualClassName())
                 .tags(board.getTags() != null
                         ? Arrays.asList(board.getTags().split(","))
                         : List.of())

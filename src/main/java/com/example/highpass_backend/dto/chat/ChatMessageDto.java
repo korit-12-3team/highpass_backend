@@ -20,6 +20,7 @@ public class ChatMessageDto {
     private Long receiverId;
     private boolean deleted;
     private String senderName;
+    private String senderAvatarVisualClassName;
     private String message;
     private LocalDateTime createdAt;
     private Long unreadCount;

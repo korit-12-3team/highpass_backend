@@ -16,6 +16,7 @@ public class StudyBoardDetailResponse {
     private String content;
     private Long userId;
     private String nickname;
+    private String avatarVisualClassName;
     private String locationName;
     private String cert;
     private String address;
@@ -47,6 +48,7 @@ public class StudyBoardDetailResponse {
                 .content(study.getContent())
                 .userId(study.getUser().getId())
                 .nickname(UserDisplayName.nickname(study.getUser()))
+                .avatarVisualClassName(study.getUser().getAvatarVisualClassName())
                 .locationName(study.getLocationName())
                 .cert(study.getCert())
                 .address(study.getAddress())

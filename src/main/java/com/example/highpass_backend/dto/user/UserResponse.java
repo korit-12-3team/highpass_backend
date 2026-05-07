@@ -21,6 +21,7 @@ public class UserResponse {
     private String socialProvider;
     private boolean online;
     private LocalDateTime lastSeenAt;
+    private String avatarVisualClassName;
 
 
     public static UserResponse from(User user) {
@@ -45,6 +46,7 @@ public class UserResponse {
                 .socialProvider(socialProvider)
                 .online(online)
                 .lastSeenAt(user.getLastSeenAt())
+                .avatarVisualClassName(user.getAvatarVisualClassName())
                 .build();
     }
 }
