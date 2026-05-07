@@ -13,6 +13,7 @@ import com.example.highpass_backend.entity.board.FreeBoard;
 import com.example.highpass_backend.entity.board.StudyBoard;
 import com.example.highpass_backend.entity.chat.ChatMessage;
 import com.example.highpass_backend.entity.chat.ChatParticipant;
+import com.example.highpass_backend.entity.notification.NotificationType;
 import com.example.highpass_backend.entity.report.Report;
 import com.example.highpass_backend.entity.user.User;
 import com.example.highpass_backend.repository.auth.OAuth2AccountRepository;
@@ -24,6 +25,7 @@ import com.example.highpass_backend.repository.chat.ChatParticipantRepository;
 import com.example.highpass_backend.repository.chat.ChatRoomRepository;
 import com.example.highpass_backend.repository.report.ReportRepository;
 import com.example.highpass_backend.repository.user.UserRepository;
+import com.example.highpass_backend.service.notification.NotificationService;
 import com.example.highpass_backend.service.user.UserPresenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -48,6 +50,7 @@ public class AdminService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<AdminUserResponse> getUsers(Long adminUserId) {
@@ -112,11 +115,32 @@ public class AdminService {
         requireAdmin(adminUserId);
         Report report = reportRepository.findById(parseLong(reportId, "신고 ID가 올바르지 않습니다."))
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "신고를 찾을 수 없습니다."));
-        report.updateStatus(parseReportStatus(status));
-        if (message != null && !message.isBlank()) {
-            report.respond(message.trim());
+        Report.Status nextStatus = parseReportStatus(status);
+        String responseMessage = message == null ? "" : message.trim();
+        report.updateStatus(nextStatus);
+        if (!responseMessage.isBlank()) {
+            report.respond(responseMessage);
         }
+        sendReportProcessedNotification(report, nextStatus, responseMessage);
         return toAdminReportResponse(report);
+    }
+
+    private void sendReportProcessedNotification(Report report, Report.Status status, String responseMessage) {
+        if (status == Report.Status.PENDING || report.getReporter() == null) {
+            return;
+        }
+
+        String resultLabel = status == Report.Status.RESOLVED ? "승인" : "반려";
+        String typeLabel = report.getTargetType() == Report.TargetType.INQUIRY ? "문의" : "신고";
+        notificationService.send(
+                report.getReporter(),
+                NotificationType.REPORT,
+                typeLabel + "가 " + resultLabel + " 처리되었습니다.",
+                report.getId(),
+                "REPORT",
+                responseMessage.isBlank() ? report.getTargetLabel() : responseMessage,
+                "관리자"
+        );
     }
 
     private void requireAdmin(Long userId) {

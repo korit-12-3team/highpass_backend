@@ -1,6 +1,7 @@
 package com.example.highpass_backend.service.user;
 
 import com.example.highpass_backend.dto.user.UpdatePasswordRequest;
+import com.example.highpass_backend.dto.user.UpdateAvatarRequest;
 import com.example.highpass_backend.dto.user.UpdateUserRequest;
 import com.example.highpass_backend.dto.user.UserResponse;
 import com.example.highpass_backend.dto.user.VerifyPasswordRequest;
@@ -15,11 +16,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class UserServiceImpl implements UserService {
+    private static final Set<String> ALLOWED_AVATAR_VISUAL_CLASSES = Set.of(
+            "bg-hp-100 font-bold text-hp-700",
+            "bg-slate-900 font-bold text-white",
+            "bg-sky-100 font-bold text-sky-700",
+            "bg-emerald-100 font-bold text-emerald-700",
+            "bg-rose-100 font-bold text-rose-700",
+            "bg-amber-100 font-bold text-amber-700"
+    );
 
     private final UserRepository userRepository;
     private final OAuth2AccountRepository oauth2AccountRepository;
@@ -54,6 +64,29 @@ public class UserServiceImpl implements UserService {
                 request.getSiDo(),
                 request.getGunGu()
         );
+
+        return toUserResponse(user);
+    }
+
+    @Override
+    public UserResponse updateAvatar(Long userId, UpdateAvatarRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "존재하지 않는 회원입니다."));
+
+        String avatarVisualClassName = request.getAvatarVisualClassName();
+        String normalizedAvatarVisualClassName =
+                avatarVisualClassName == null || avatarVisualClassName.isBlank()
+                        ? null
+                        : avatarVisualClassName.trim();
+
+        if (
+                normalizedAvatarVisualClassName != null
+                        && !ALLOWED_AVATAR_VISUAL_CLASSES.contains(normalizedAvatarVisualClassName)
+        ) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "지원하지 않는 아바타 스타일입니다.");
+        }
+
+        user.updateAvatarVisualClassName(normalizedAvatarVisualClassName);
 
         return toUserResponse(user);
     }

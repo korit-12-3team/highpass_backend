@@ -15,6 +15,7 @@ public class CommentResponse {
     private String content;
     private String nickname;
     private Long userId;
+    private String avatarVisualClassName;
 
     private LocalDateTime createdAt;
 
@@ -24,6 +25,7 @@ public class CommentResponse {
                 .content(comment.getContent())
                 .nickname(UserDisplayName.nickname(comment.getUser()))
                 .userId(comment.getUser().getId())
+                .avatarVisualClassName(comment.getUser().getAvatarVisualClassName())
                 .createdAt(comment.getCreatedAt())
                 .build();
     }

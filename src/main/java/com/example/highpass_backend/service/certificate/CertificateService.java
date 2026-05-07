@@ -157,6 +157,7 @@ public class CertificateService {
             }
             nationalCertificateRepository.save(existing);
         }
+        nationalCertificateRepository.touchAllUpdatedAt(LocalDateTime.now());
 
         return CertificateSyncResponse.builder()
                 .fetchedCount(fetched.size())
