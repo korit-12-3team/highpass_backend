@@ -59,6 +59,9 @@ public class User {
     @Column(name = "last_seen_at")
     private LocalDateTime lastSeenAt;
 
+    @Column(name = "avatar_visual_class_name", length = 120)
+    private String avatarVisualClassName;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
@@ -101,6 +104,10 @@ public class User {
         this.gender = gender;
         this.siDo = siDo;
         this.gunGu = gunGu;
+    }
+
+    public void updateAvatarVisualClassName(String avatarVisualClassName) {
+        this.avatarVisualClassName = avatarVisualClassName;
     }
 
     public void updateStatus(Status status) {

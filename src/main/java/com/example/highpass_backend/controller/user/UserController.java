@@ -1,6 +1,7 @@
 package com.example.highpass_backend.controller.user;
 
 import com.example.highpass_backend.config.CookieUtils;
+import com.example.highpass_backend.dto.user.UpdateAvatarRequest;
 import com.example.highpass_backend.dto.user.UpdatePasswordRequest;
 import com.example.highpass_backend.dto.user.UpdateUserRequest;
 import com.example.highpass_backend.dto.user.UserResponse;
@@ -42,6 +43,14 @@ public class UserController {
             @Valid @RequestBody UpdateUserRequest request
     ) {
         return ResponseEntity.ok(userService.updateUser(principal.getUserId(), request));
+    }
+
+    @PatchMapping("/me/avatar")
+    public ResponseEntity<UserResponse> updateAvatar(
+            @AuthenticationPrincipal CustomJwtPrincipal principal,
+            @Valid @RequestBody UpdateAvatarRequest request
+    ) {
+        return ResponseEntity.ok(userService.updateAvatar(principal.getUserId(), request));
     }
 
     @PatchMapping("/me/password")

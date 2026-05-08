@@ -20,6 +20,7 @@ public class ChatRoomResponse {
     private LocalDateTime lastMessageTime;
     private Long partnerId;
     private String partnerNickname;
+    private String partnerAvatarVisualClassName;
     private List<ChatMessageDto> messages;
     private List<ChatParticipantResponse> participants;
 
@@ -48,6 +49,7 @@ public class ChatRoomResponse {
 
         this.partnerId = partnerParticipation != null ? partnerParticipation.getUser().getId() : null;
         this.partnerNickname = partnerParticipation != null ? partnerParticipation.getUser().getNickname() : null;
+        this.partnerAvatarVisualClassName = partnerParticipation != null ? partnerParticipation.getUser().getAvatarVisualClassName() : null;
 
         LocalDateTime myLastReadAt = myParticipation != null ? myParticipation.getLastReadAt() : null;
         LocalDateTime joinedAt = myParticipation != null ? myParticipation.getJoinedAt() : null;
@@ -94,6 +96,7 @@ public class ChatRoomResponse {
                                 .roomId(this.id)
                                 .senderId(message.getSender() != null ? message.getSender().getId() : 0L)
                                 .senderName(message.getSender() != null ? message.getSender().getNickname() : "알 수 없음")
+                                .senderAvatarVisualClassName(message.getSender() != null ? message.getSender().getAvatarVisualClassName() : null)
                                 .message(message.getMessage())
                                 .createdAt(message.getCreatedAt())
                                 .type(message.getType() != null
