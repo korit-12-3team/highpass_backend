@@ -111,7 +111,7 @@ public class ChatRoomResponse {
 
             var lastMessageEntity = entity.getMessages().get(entity.getMessages().size() - 1);
             this.lastMessage = lastMessageEntity.getMessage();
-            this.lastMessageTime = lastMessageEntity.getCreatedAt();
+            this.lastMessage = lastMessageEntity.isDeleted() ? "삭제된 메시지입니다. " : lastMessageEntity.getMessage();
 
             this.unreadCount = entity.getMessages().stream()
                     .filter(message -> message.getSender() != null && !message.getSender().getId().equals(currentUserId))
