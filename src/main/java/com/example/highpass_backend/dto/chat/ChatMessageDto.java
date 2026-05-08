@@ -30,7 +30,7 @@ public class ChatMessageDto {
     private Long newOwnerId;
 
     public enum MessageType {
-        ENTER, TALK, QUIT, JOIN_REQUEST, APPROVE, NOTICE, READ
+        ENTER, TALK, QUIT, JOIN_REQUEST, APPROVE, NOTICE, READ, DELETE
     }
 
     public void setEnterMessage() {

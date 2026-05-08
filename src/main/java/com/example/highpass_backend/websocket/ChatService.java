@@ -606,6 +606,18 @@ public class ChatService {
             throw new RuntimeException("본인 메시지만 삭제할 수 있습니다.");
         }
         message.markAsDeleted();
+
+        ChatMessageDto deleteDto = ChatMessageDto.builder()
+                .id(messageId)
+                .roomId(message.getChatRoom().getId())
+                .type(ChatMessageDto.MessageType.valueOf("DELETE"))
+                .deleted(true)
+                .build();
+
+        messagingTemplate.convertAndSend(
+                "/sub/chat/room/" + message.getChatRoom().getId(),
+                deleteDto
+        );
     }
 
 }
