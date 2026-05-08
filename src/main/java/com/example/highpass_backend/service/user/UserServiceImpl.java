@@ -82,6 +82,8 @@ public class UserServiceImpl implements UserService {
         if (
                 normalizedAvatarVisualClassName != null
                         && !ALLOWED_AVATAR_VISUAL_CLASSES.contains(normalizedAvatarVisualClassName)
+                        && !normalizedAvatarVisualClassName.matches("^#[0-9A-Fa-f]{6}$")
+                        && !normalizedAvatarVisualClassName.matches("^#[0-9A-Fa-f]{6}\\|#[0-9A-Fa-f]{6}$")
         ) {
             throw new BusinessException(ErrorCode.INVALID_INPUT, "지원하지 않는 아바타 스타일입니다.");
         }
