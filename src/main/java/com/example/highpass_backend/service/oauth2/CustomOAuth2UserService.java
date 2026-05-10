@@ -54,6 +54,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .userId(user.getId())
                     .email(user.getEmail())
                     .nickname(user.getNickname())
+                    .role(user.getRole().name())
                     .provider(provider)
                     .providerId(providerId)
                     .isNew(false)

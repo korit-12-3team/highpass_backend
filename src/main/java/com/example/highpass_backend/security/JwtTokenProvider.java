@@ -6,12 +6,13 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class JwtTokenProvider {
         this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String createAccessToken(Long userId, String email) {
+    public String createAccessToken(Long userId, String email, String role) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + jwtProperties.getAccessTokenExpiration());
 
@@ -33,6 +34,7 @@ public class JwtTokenProvider {
                 .subject(String.valueOf(userId))
                 .claim("email", email)
                 .claim("type", "access")
+                .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(secretKey)
@@ -94,11 +96,15 @@ public class JwtTokenProvider {
         Long userId = getUserId(token);
         String email = getEmail(token);
 
+        Claims claims = Jwts.parser().verifyWith(secretKey).build()
+                .parseSignedClaims(token).getPayload();
+        String role = claims.get("role", String.class);
+
+        var authorities = (role != null)
+                ? List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                : List.<SimpleGrantedAuthority>of();
+
         CustomJwtPrincipal principal = new CustomJwtPrincipal(userId, email);
-        return new UsernamePasswordAuthenticationToken(
-                principal,
-                null,
-                Collections.emptyList()
-        );
+        return new UsernamePasswordAuthenticationToken(principal, null, authorities);
     }
 }
