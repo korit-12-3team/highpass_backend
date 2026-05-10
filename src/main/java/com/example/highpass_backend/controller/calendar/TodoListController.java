@@ -2,6 +2,7 @@ package com.example.highpass_backend.controller.calendar;
 
 import com.example.highpass_backend.dto.calendar.TodoListRequest;
 import com.example.highpass_backend.dto.calendar.TodoListResponse;
+import com.example.highpass_backend.dto.calendar.TodoUpdateContentRequest;
 import com.example.highpass_backend.security.CustomJwtPrincipal;
 import com.example.highpass_backend.service.calendar.TodoListService;
 import jakarta.validation.Valid;
@@ -54,7 +55,7 @@ public class TodoListController {
     public ResponseEntity<TodoListResponse> updateContent(
             @PathVariable("todoId") Long todoId,
             @AuthenticationPrincipal CustomJwtPrincipal principal,
-            @Valid @RequestBody TodoListRequest request
+            @Valid @RequestBody TodoUpdateContentRequest request
     ) {
         TodoListResponse updatedTodo = todoListService.updateContent(principal.getUserId(), todoId, request.getContent());
         return ResponseEntity.ok(updatedTodo);

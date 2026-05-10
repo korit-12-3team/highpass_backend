@@ -91,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void issueAuthCookies(User user, HttpServletResponse response) {
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail());
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
 
         refreshTokenService.save(

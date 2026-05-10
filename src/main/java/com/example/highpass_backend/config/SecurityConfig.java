@@ -63,7 +63,7 @@ public class SecurityConfig {
                                 "/api/calendar/holidays/**",
                                 "/api/users/**"
                         ).permitAll()
-                        .requestMatchers("/api/admin/**").authenticated()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/chat/**").authenticated()
                         .requestMatchers("/api/**").authenticated()

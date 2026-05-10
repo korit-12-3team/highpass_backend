@@ -5,6 +5,8 @@ import com.example.highpass_backend.dto.etc.ApiResponse;
 import com.example.highpass_backend.eception.BusinessException;
 import com.example.highpass_backend.eception.ErrorCode;
 import com.example.highpass_backend.entity.auth.RefreshToken;
+import com.example.highpass_backend.entity.user.User;
+import com.example.highpass_backend.repository.user.UserRepository;
 import com.example.highpass_backend.security.CustomJwtPrincipal;
 import com.example.highpass_backend.security.JwtProperties;
 import com.example.highpass_backend.security.JwtTokenProvider;
@@ -31,6 +33,7 @@ public class TokenController {
     private final JwtProperties jwtProperties;
     private final CookieUtils cookieUtils;
     private final RefreshTokenService refreshTokenService;
+    private final UserRepository userRepository;
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse> refresh(HttpServletRequest request, HttpServletResponse response) {
@@ -56,7 +59,9 @@ public class TokenController {
             failRefresh(response, "만료된 리프레시 토큰입니다.");
         }
 
-        String accessToken = jwtTokenProvider.createAccessToken(userId, null);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+        String accessToken = jwtTokenProvider.createAccessToken(userId, user.getEmail(), user.getRole().name());
         String newRefreshToken = jwtTokenProvider.createRefreshToken(userId);
 
         refreshTokenService.save(

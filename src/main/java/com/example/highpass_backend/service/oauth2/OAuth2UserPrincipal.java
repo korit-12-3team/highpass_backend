@@ -17,6 +17,7 @@ public class OAuth2UserPrincipal implements OAuth2User {
     private Long userId;
     private String email;
     private String nickname;
+    private String role;
     private OAuthProvider provider;
     private String providerId;
     private boolean isNew;

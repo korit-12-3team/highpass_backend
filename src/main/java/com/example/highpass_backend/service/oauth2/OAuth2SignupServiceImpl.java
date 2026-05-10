@@ -74,7 +74,7 @@ public class OAuth2SignupServiceImpl implements OAuth2SignupService {
 
         oauth2AccountRepository.save(oauth2Account);
 
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail());
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
 
         refreshTokenService.save(
