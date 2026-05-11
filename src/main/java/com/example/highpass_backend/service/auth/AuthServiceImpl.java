@@ -78,11 +78,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if (user.getStatus() == User.Status.SUSPENDED) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "정지된 계정입니다. 관리자에게 문의해 주세요.");
+            throw new BusinessException(ErrorCode.ACCOUNT_SUSPENDED);
         }
 
         if (user.getStatus() == User.Status.DELETED) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "탈퇴 처리된 계정입니다.");
+            throw new BusinessException(ErrorCode.ACCOUNT_DELETED);
         }
 
         issueAuthCookies(user, response);
