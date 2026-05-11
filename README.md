@@ -13,10 +13,9 @@ Spring Boot 기반 REST API + WebSocket STOMP 채팅 서버로, 포트 **8080**�
 | Language | Java 17 |
 | Framework | Spring Boot 4.0.5 |
 | DB (prod) | MySQL 8 + Flyway 마이그레이션 |
-| DB (local) | H2 File DB (`data/`), Flyway 비활성화 |
+| DB (local) | MySQL (localhost:3310, HeidiSQL) |
 | 보안 | Spring Security, JWT (jjwt 0.13), OAuth2 (Google · Kakao) |
 | 실시간 | WebSocket STOMP (`/ws-stomp`) |
-| API 문서 | springdoc-openapi 3.0.2 → `/swagger-ui.html` |
 | 배포 | GCP Cloud Run + Cloud SQL (MySQL) |
 
 ---
@@ -42,15 +41,9 @@ ADMIN_PASSWORD=Admin1234!
 ADMIN_NICKNAME=관리자
 ```
 
-> 로컬 프로파일(`-local`)은 H2를 사용하므로 DB 관련 환경 변수는 불필요합니다.
-
 ### 실행
 
 ```bash
-# 로컬 프로파일 (H2)
-./gradlew bootRun --args='--spring.profiles.active=local'
-
-# 기본 (MySQL 필요)
 ./gradlew bootRun
 ```
 
@@ -110,8 +103,3 @@ src/main/resources/db/migration/V{YYYYMMDD}_{NN}__{설명}.sql
 
 [DEPLOYMENT.md](./DEPLOYMENT.md) 참고 (GCP Cloud Run + Cloud Build CI/CD)
 
----
-
-## API 문서
-
-서버 실행 후 http://localhost:8080/swagger-ui.html

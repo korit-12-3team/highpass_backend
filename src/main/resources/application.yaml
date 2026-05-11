@@ -88,12 +88,3 @@ app:
     email: ${ADMIN_EMAIL:admin@highpass.local}
     password: ${ADMIN_PASSWORD:Admin1234!}
     nickname: ${ADMIN_NICKNAME:관리자}
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-
-  api-docs:
-    path: /api-docs
-
-  show-data-rest: true
