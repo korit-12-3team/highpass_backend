@@ -1,6 +1,7 @@
 package com.example.highpass_backend.config;
 
 import com.example.highpass_backend.security.JwtAuthenticationFilter;
+import com.example.highpass_backend.security.OAuth2FailureHandler;
 import com.example.highpass_backend.security.OAuth2SuccessHandler;
 import com.example.highpass_backend.service.oauth2.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +25,7 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oauth2SuccessHandler;
+    private final OAuth2FailureHandler oauth2FailureHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -72,6 +74,7 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oauth2SuccessHandler)
+                        .failureHandler(oauth2FailureHandler)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
