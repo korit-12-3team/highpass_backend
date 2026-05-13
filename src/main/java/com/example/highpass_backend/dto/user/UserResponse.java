@@ -17,6 +17,7 @@ public class UserResponse {
     private String siDo;
     private String gunGu;
     private String role;
+    private String status;
     private String loginType;
     private String socialProvider;
     private boolean online;
@@ -33,20 +34,23 @@ public class UserResponse {
     }
 
     public static UserResponse from(User user, String socialProvider, boolean online) {
+        boolean deleted = user.getStatus() == User.Status.DELETED;
+
         return UserResponse.builder()
                 .id(user.getId())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .ageRange(user.getAgeRange())
-                .gender(user.getGender())
-                .siDo(user.getSiDo())
-                .gunGu(user.getGunGu())
+                .email(deleted ? null : user.getEmail())
+                .nickname(UserDisplayName.nickname(user))
+                .ageRange(deleted ? null : user.getAgeRange())
+                .gender(deleted ? null : user.getGender())
+                .siDo(deleted ? null : user.getSiDo())
+                .gunGu(deleted ? null : user.getGunGu())
                 .role(user.getRole().name())
-                .loginType(socialProvider == null ? "local" : "social")
-                .socialProvider(socialProvider)
-                .online(online)
-                .lastSeenAt(user.getLastSeenAt())
-                .avatarVisualClassName(user.getAvatarVisualClassName())
+                .status(user.getStatus().name().toLowerCase())
+                .loginType(deleted ? null : (socialProvider == null ? "local" : "social"))
+                .socialProvider(deleted ? null : socialProvider)
+                .online(!deleted && online)
+                .lastSeenAt(deleted ? null : user.getLastSeenAt())
+                .avatarVisualClassName(deleted ? null : user.getAvatarVisualClassName())
                 .build();
     }
 }
